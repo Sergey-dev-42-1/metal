@@ -19,7 +19,7 @@ func (m *MemStorage) Find(name string) (models.MetricValue, error) {
 	if val, ok := m.Metrics[name]; ok {
 		return val, nil
 	}
-	return 0, errors.New("No such metric")
+	return 0, errors.New("no such metric")
 }
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metric) models.Metric {
@@ -41,6 +41,6 @@ func (m *MemStorage) Remove(name string) error {
 		delete(m.Metrics, name)
 		return nil
 	}
-	return errors.New("No such metric")
+	return errors.New("no such metric")
 
 }
