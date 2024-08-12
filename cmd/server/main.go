@@ -8,9 +8,12 @@ import (
 )
 
 func main() {
+	parseFlags()
+
 	r := router.Router()
 	r = controller.AddMetricRoutes(r)
-	r.LoadHTMLGlob("internal/server/presentation/templates/*.html")
+	r.LoadHTMLGlob("../../internal/server/presentation/templates/*.html")
 	service.SetStorage(repositories.New())
-	r.Run(":8080")
+
+	r.Run(startAddress.String())
 }

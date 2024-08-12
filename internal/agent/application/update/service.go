@@ -2,17 +2,26 @@ package update
 
 import (
 	"fmt"
+	"metal/internal/agent/application/update/interfaces"
 	"metal/internal/pkg/domain/models"
+
 	"github.com/go-resty/resty/v2"
 )
 
 type UpdateService struct {
+	addr string
+}
+
+func New(a string) interfaces.UpdateService {
+	return &UpdateService{
+		addr: a,
+	}
 }
 
 func (s *UpdateService) UpdateMetrics(metric models.Metric) (*resty.Response, error) {
 
 	client := resty.New()
-	client.BaseURL = "http://localhost:8080"
+	client.BaseURL = "http://" + s.addr
 	p := map[string]string{
 		"type": metric.Type,
 		"name": metric.Name,
