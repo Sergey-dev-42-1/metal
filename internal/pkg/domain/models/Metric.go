@@ -21,3 +21,8 @@ type Metric struct {
 	Type  string
 	Name  string
 }
+type MetricServiceClient struct {
+	Value MetricValue
+	Type  string
+	Name  string
+}

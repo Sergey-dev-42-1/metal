@@ -31,10 +31,10 @@ func (m *MemStorage) Find(name string) (models.Metric, error) {
 func (m *MemStorage) CreateOrUpdate(metric models.Metric) models.Metric {
 
 	fmt.Println("Create or update metric")
-	name, value, tp := metric.Name, metric.Value, metric.Type
-	if tp == "counter" {
-		value = models.MetricValue(value.ToInt64())
-	}
+	
+	var name = metric.Name
+	var tp = metric.Type
+
 	if _, ok := m.Metrics[metric.Name]; ok {
 		if tp == "gauge" {
 			m.Metrics[name] = metric
