@@ -29,7 +29,7 @@ func HandleMetricRecording(res http.ResponseWriter, req *http.Request) {
 	case "POST":
 		{
 			
-			metricValue, err := strconv.ParseFloat(value, 10)
+			metricValue, err := strconv.ParseFloat(value, 64)
 			if err != nil {
 				http.Error(res, "Value is not a number", http.StatusBadRequest)
 			}
