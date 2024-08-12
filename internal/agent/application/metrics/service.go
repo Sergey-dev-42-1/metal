@@ -50,8 +50,8 @@ func convertToMetrics(m runtime.MemStats) []models.Metric {
 	for i := range val.NumField() {
 		key := val.Type().Field(i).Name
 
-		keyID := slices.IndexFunc(collectedMetrics, func(v string) bool {
-			return strings.ToLower(key) == strings.ToLower(v)
+		keyID := slices.IndexFunc(collectedMetrics, func(metricName string) bool {
+			return strings.EqualFold(key, metricName)
 		})
 		if keyID == -1 {
 			continue
