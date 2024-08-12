@@ -12,7 +12,8 @@ func main() {
 
 	r := router.Router()
 	r = controller.AddMetricRoutes(r)
-	r.LoadHTMLGlob("../../internal/server/presentation/templates/*.html")
+	//Не будет работать если запускать сервер не из корневой папки
+	r.LoadHTMLGlob("internal/server/presentation/templates/*.html")
 	service.SetStorage(repositories.New())
 
 	r.Run(startAddress.String())
