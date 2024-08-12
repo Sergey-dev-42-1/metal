@@ -3,8 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	service "metal/internal/application/metrics-service"
-	"metal/internal/domain/models"
+	"metal/internal/pkg/domain/models"
+	"metal/internal/server/application/metrics-service"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +14,7 @@ func HandleMetricRecording(res http.ResponseWriter, req *http.Request) {
 	value := req.PathValue("value")
 	tp := req.PathValue("type")
 	name := req.PathValue("name")
-	fmt.Println("Metric controller ", value, tp, name)
+	
 	if name == "" {
 		http.Error(res, "Name of the metric is not specified", http.StatusNotFound)
 		return
@@ -28,10 +28,12 @@ func HandleMetricRecording(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
 		{
-			metricValue, err := strconv.Atoi(value)
+			
+			metricValue, err := strconv.ParseFloat(value, 10)
 			if err != nil {
 				http.Error(res, "Value is not a number", http.StatusBadRequest)
 			}
+			
 			service.CreateOrUpdateMetric(models.Metric{Value: models.MetricValue(metricValue), Type: tp, Name: name})
 			// jsonMetric, _ := json.Marshal(metric)
 			// res.Write(jsonMetric)

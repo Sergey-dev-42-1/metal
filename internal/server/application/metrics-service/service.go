@@ -1,8 +1,8 @@
 package service
 
 import (
-	"metal/internal/domain/models"
-	"metal/internal/domain/repositories/interfaces"
+	"metal/internal/pkg/domain/models"
+	"metal/internal/pkg/domain/repositories/interfaces"
 )
 
 var db interfaces.MetricsStorage
@@ -24,7 +24,6 @@ func CreateOrUpdateMetric(metric models.Metric) models.Metric {
 func FindMetric(name string) (models.MetricValue, error) {
 	return db.Find(name)
 }
-
 
 func SetStorage(ms interfaces.MetricsStorage) {
 	db = ms

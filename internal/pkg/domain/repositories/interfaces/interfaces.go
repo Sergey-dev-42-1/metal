@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"metal/internal/domain/models"
+	"metal/internal/pkg/domain/models"
 )
 
 type MetricsStorage interface {

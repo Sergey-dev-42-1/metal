@@ -2,7 +2,8 @@ package repositories
 
 import (
 	"errors"
-	"metal/internal/domain/models"
+	"fmt"
+	"metal/internal/pkg/domain/models"
 )
 
 type MemStorage struct {
@@ -23,9 +24,14 @@ func (m *MemStorage) Find(name string) (models.MetricValue, error) {
 }
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metric) models.Metric {
+	
+	fmt.Println("Create or update metric")
 	name, value := metric.Name, metric.Value
+	if metric.Type == "counter" {
+		value = models.MetricValue(value.ToInt64())
+	}
 	if _, ok := m.Metrics[metric.Name]; ok {
-		if metric.Type == "counter" {
+		if metric.Type == "gauge" {
 			m.Metrics[name] = value
 			return models.Metric{Name: name, Value: value}
 		}

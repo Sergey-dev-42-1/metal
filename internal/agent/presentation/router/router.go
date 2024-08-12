@@ -1,7 +1,7 @@
 package router
 
 import (
-	"metal/internal/presentation/controller"
+	"metal/internal/server/presentation/controller"
 	"net/http"
 )
 
