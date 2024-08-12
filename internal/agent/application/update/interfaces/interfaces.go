@@ -2,9 +2,9 @@ package interfaces
 
 import (
 	"metal/internal/pkg/domain/models"
-	"net/http"
+	"github.com/go-resty/resty/v2"
 )
 
 type UpdateService interface {
-	UpdateMetrics(models.Metric) (http.Response, error)
+	UpdateMetrics(models.Metric) (*resty.Response, error)
 }

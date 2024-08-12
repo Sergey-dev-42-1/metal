@@ -1,76 +1,80 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"metal/internal/pkg/domain/models"
-	"metal/internal/server/application/metrics-service"
-	"net/http"
+	service "metal/internal/server/application/metrics-service"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
-func HandleMetricRecording(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Metric controller", req.URL.Path)
-	value := req.PathValue("value")
-	tp := req.PathValue("type")
-	name := req.PathValue("name")
-	
+// Это было в роутере, но тогда не получится протестировать контроллер
+// т.к. будет циклическая зависимость между ним и роутером (роутер -> контроллер -> роутер)
+func AddMetricRoutes(r *gin.Engine) *gin.Engine {
+	root := r.Group("/")
+	{
+		root.GET("/", HandleGetStoredValuesHTML)
+
+		update := root.Group("/update/")
+		{
+			update.POST(":type/:name/:value", HandleMetricRecording)
+		}
+		value := root.Group("/value/")
+		{
+			value.GET(":type/:name", HandleGetMetricValue)
+		}
+	}
+	return r
+}
+
+func HandleMetricRecording(c *gin.Context) {
+	fmt.Println("Metric controller", c.Params)
+	value := c.Param("value")
+	tp := c.Param("type")
+	name := c.Param("name")
+
 	if name == "" {
-		http.Error(res, "Name of the metric is not specified", http.StatusNotFound)
+		c.String(404, "%s", "Name of the metric is not specified")
 		return
 	}
 
 	if (tp != "gauge" && tp != "counter") || value == "" {
-		http.Error(res, "Bad request, check parameters", http.StatusBadRequest)
+		c.String(400, "%s", "Bad request, check parameters")
 		return
 	}
 
-	switch req.Method {
-	case "POST":
-		{
-			
-			metricValue, err := strconv.ParseFloat(value, 64)
-			if err != nil {
-				http.Error(res, "Value is not a number", http.StatusBadRequest)
-			}
-			
-			service.CreateOrUpdateMetric(models.Metric{Value: models.MetricValue(metricValue), Type: tp, Name: name})
-			// jsonMetric, _ := json.Marshal(metric)
-			// res.Write(jsonMetric)
-			return
-		}
-	default:
-		{
-			http.Error(res, "Method not supported", http.StatusMethodNotAllowed)
-			return
-		}
+	metricValue, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		c.String(400, "%s", "Value is not a number")
+		return
 	}
 
+	result := service.CreateOrUpdateMetric(models.Metric{Value: models.MetricValue(metricValue), Type: tp, Name: name})
+	c.String(200, "Successfully written '%s' metric", result.Name)
 }
 
-func HandleFindMetric(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("Find metric")
-	name := req.PathValue("name")
-
+func HandleGetMetricValue(c *gin.Context) {
+	fmt.Println("Get metric value")
+	name := c.Param("name")
+	fmt.Println(name)
 	if name == "" {
-		http.Error(res, "Name of the metric is not specified", http.StatusNotFound)
+		c.String(404, "%s", "Name of the metric is not specified")
+		return
 	}
-	switch req.Method {
-	case "GET":
-		{
-
-			metricValue, err := service.FindMetric(name)
-			if err != nil {
-				http.Error(res, "Error while getting metric", http.StatusInternalServerError)
-			}
-			jsonMetric, _ := json.Marshal(metricValue)
-			res.Write(jsonMetric)
-			res.Write([]byte(name + " " + string(jsonMetric)))
-		}
-	default:
-		{
-			http.Error(res, "Method not supported", http.StatusMethodNotAllowed)
-		}
+	metric, err := service.FindMetric(name)
+	if err != nil {
+		c.String(404, "%s", "Didn't find such metric")
+		return
 	}
-
+	if metric.Type == "counter" {
+		c.String(200, "%s", metric.Value.ToString())
+		return
+	}
+	c.String(200, "%s", metric.Value.ToStringFloat())
+}
+func HandleGetStoredValuesHTML(c *gin.Context) {
+	fmt.Println("Get metric page")
+	viewData := service.GetAllMetrics()
+	c.HTML(200, "index.html", viewData)
 }

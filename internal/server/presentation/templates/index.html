@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+            rel="stylesheet"
+        />
+        <script type="text/javascript">
+            setInterval(() => this.location.reload(), 5000);
+        </script>
+        <style>
+            * > * {
+                box-sizing: border-box;
+            }
+            html {
+                font: 400 14px/100% Roboto;
+            }
+
+            body {
+                padding: 20px;
+                height: 100vh;
+                overflow: auto;
+                width: 100%;
+            }
+
+            body .header {
+                font-size: 36px;
+                color: gray;
+            }
+            body .container {
+                height: 100%;
+                width: 100%;
+                margin-top: 10px;
+                padding: 20px;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                grid-template-rows: repeat(auto-fill, 100px);
+            }
+            body .container .metric {
+                display: flex;
+                gap: 10px;
+                flex-direction: column;
+                width: 150px;
+                overflow: hidden;
+            }
+            body .container .metric__header {
+                font-size: 18px;
+            }
+            body .container .metric__value {
+                font-size: 12px;
+                display: flex;
+            }
+        </style>
+        <title>Metal</title>
+    </head>
+    <body>
+        <div class="header">Metric values</div>
+        <div class="container">
+            {{ if .}} {{range .}}
+            <div class="metric">
+                <div class="metric__header">{{ .Name }}</div>
+                <div class="metric__value">{{printf "%.2f" .Value }}</div>
+            </div>
+            {{end}} {{ else }}
+            <div>Метрик еще нет, обновите страницу позже</div>
+            {{end}}
+        </div>
+    </body>
+</html>

@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"metal/internal/pkg/domain/repositories"
 	service "metal/internal/server/application/metrics-service"
+	"metal/internal/server/presentation/controller"
 	"metal/internal/server/presentation/router"
-	"net/http"
 )
 
 func main() {
-
+	r := router.Router()
+	r = controller.AddMetricRoutes(r)
+	r.LoadHTMLGlob("internal/server/presentation/templates/*.html")
 	service.SetStorage(repositories.New())
-	fmt.Println("Server is up on localhost:8080")
-	http.ListenAndServe(":8080", router.Router())
+	r.Run(":8080")
 }

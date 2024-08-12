@@ -21,7 +21,11 @@ func CreateOrUpdateMetric(metric models.Metric) models.Metric {
 	return db.CreateOrUpdate(metric)
 }
 
-func FindMetric(name string) (models.MetricValue, error) {
+func GetAllMetrics() map[string]models.Metric {
+	return db.GetAll()
+}
+
+func FindMetric(name string) (models.Metric, error) {
 	return db.Find(name)
 }
 

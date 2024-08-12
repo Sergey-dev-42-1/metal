@@ -7,39 +7,48 @@ import (
 )
 
 type MemStorage struct {
-	Metrics map[string]models.MetricValue
+	//дубляжка имени, но зато удобно работать
+	Metrics map[string]models.Metric
 }
 
 func New() *MemStorage {
 	return &MemStorage{
-		Metrics: make(map[string]models.MetricValue),
+		Metrics: make(map[string]models.Metric),
 	}
 }
 
-func (m *MemStorage) Find(name string) (models.MetricValue, error) {
+func (m *MemStorage) GetAll() map[string]models.Metric {
+	return m.Metrics
+}
+
+func (m *MemStorage) Find(name string) (models.Metric, error) {
 	if val, ok := m.Metrics[name]; ok {
 		return val, nil
 	}
-	return 0, errors.New("no such metric")
+	return models.Metric{}, errors.New("no such metric")
 }
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metric) models.Metric {
-	
+
 	fmt.Println("Create or update metric")
-	name, value := metric.Name, metric.Value
-	if metric.Type == "counter" {
+	name, value, tp := metric.Name, metric.Value, metric.Type
+	if tp == "counter" {
 		value = models.MetricValue(value.ToInt64())
 	}
 	if _, ok := m.Metrics[metric.Name]; ok {
-		if metric.Type == "gauge" {
-			m.Metrics[name] = value
-			return models.Metric{Name: name, Value: value}
+		if tp == "gauge" {
+			m.Metrics[name] = metric
+			return metric
 		}
-		m.Metrics[name] += value
-		return models.Metric{Name: name, Value: m.Metrics[name]}
+		m.Metrics[name] = models.Metric{
+			Value: m.Metrics[name].Value + metric.Value,
+			Type:  tp,
+			Name:  name,
+		}
+		return m.Metrics[name]
 	}
-	m.Metrics[name] = value
-	return models.Metric{Name: name, Value: value}
+	m.Metrics[name] = metric
+	return metric
 }
 
 func (m *MemStorage) Remove(name string) error {

@@ -13,7 +13,7 @@ func (v MetricValue) ToString() string {
 	return fmt.Sprintf("%d", v.ToInt64())
 }
 func (v MetricValue) ToStringFloat() string {
-	return fmt.Sprintf("%f", v)
+	return fmt.Sprintf("%g", v)
 }
 
 type Metric struct {

@@ -3,27 +3,32 @@ package update
 import (
 	"fmt"
 	"metal/internal/pkg/domain/models"
-	"net/http"
-	"net/url"
+	"github.com/go-resty/resty/v2"
 )
 
 type UpdateService struct {
 }
 
-func (s *UpdateService) UpdateMetrics(metric models.Metric) (*http.Response, error) {
+func (s *UpdateService) UpdateMetrics(metric models.Metric) (*resty.Response, error) {
 
-	link := url.URL{
-		Scheme: "http",
-		Host:   "localhost:8080",
-		Path:   "/update/" + metric.Type + "/" + metric.Name + "/",
+	client := resty.New()
+	client.BaseURL = "http://localhost:8080"
+	p := map[string]string{
+		"type": metric.Type,
+		"name": metric.Name,
 	}
+
 	if metric.Type == "counter" {
-		link.Path += metric.Value.ToString()
+		p["value"] += metric.Value.ToString()
 	} else {
-		link.Path += metric.Value.ToStringFloat()
+		p["value"] = metric.Value.ToStringFloat()
 	}
-	fmt.Println("Updating metrics on server", link.String())
-	res, err := http.Post(link.String(), "text/plain", nil)
-	fmt.Println(res)
+
+	fmt.Printf("Updating metrics on server %s:%f \n", metric.Name, metric.Value)
+	res, err := client.R().SetPathParams(p).Post("/update/{type}/{name}/{value}")
+
+	if err != nil {
+		panic(err)
+	}
 	return res, err
 }
