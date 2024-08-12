@@ -75,71 +75,97 @@ func createMetricsMap(m runtime.MemStats) []models.Metric {
 		Type:  "gauge",
 		Value: models.MetricValue(m.HeapAlloc),
 		Name:  "HeapAlloc",
+	}, models.Metric{
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapIdle),
+		Name:  "HeapIdle",
+	}, models.Metric{
+		Name:  "HeapInuse",
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapInuse),
+	}, models.Metric{
+		Name:  "HeapInuse",
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapInuse),
+	}, models.Metric{
+		Name:  "HeapObjects",
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapObjects),
+	}, models.Metric{
+		Name:  "HeapReleased",
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapReleased),
+	}, models.Metric{
+		Name:  "HeapSys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.HeapSys),
+	}, models.Metric{
+		Name:  "LastGC",
+		Type:  "gauge",
+		Value: models.MetricValue(m.LastGC),
+	}, models.Metric{
+		Name:  "Lookups",
+		Type:  "gauge",
+		Value: models.MetricValue(m.Lookups),
+	}, models.Metric{
+		Name:  "MCacheInuse",
+		Type:  "gauge",
+		Value: models.MetricValue(m.MCacheInuse),
+	}, models.Metric{
+		Name:  "MCacheSys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.MCacheSys),
+	}, models.Metric{
+		Name:  "MSpanInuse",
+		Type:  "gauge",
+		Value: models.MetricValue(m.MSpanInuse),
+	}, models.Metric{
+		Name:  "MSpanSys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.MSpanSys),
+	}, models.Metric{
+		Name:  "Mallocs",
+		Type:  "gauge",
+		Value: models.MetricValue(m.Mallocs),
+	}, models.Metric{
+		Name:  "NextGC",
+		Type:  "gauge",
+		Value: models.MetricValue(m.NextGC),
+	}, models.Metric{
+		Name:  "NumForcedGC",
+		Type:  "gauge",
+		Value: models.MetricValue(m.NumForcedGC),
+	}, models.Metric{
+		Name:  "NumGC",
+		Type:  "gauge",
+		Value: models.MetricValue(m.NumGC),
+	}, models.Metric{
+		Name:  "OtherSys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.OtherSys),
+	}, models.Metric{
+		Name:  "PauseTotalNs",
+		Type:  "gauge",
+		Value: models.MetricValue(m.PauseTotalNs),
+	}, models.Metric{
+		Name:  "StackInuse",
+		Type:  "gauge",
+		Value: models.MetricValue(m.StackInuse),
+	}, models.Metric{
+		Name:  "StackSys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.StackSys),
+	}, models.Metric{
+		Name:  "Sys",
+		Type:  "gauge",
+		Value: models.MetricValue(m.Sys),
+	}, models.Metric{
+		Name:  "TotalAlloc",
+		Type:  "gauge",
+		Value: models.MetricValue(m.TotalAlloc),
 	},
 	)
 
 	return metricsMap
-	// metricsMap["HeapIdle"] = models.Metric{
-	// 	Value: models.MetricValue(m.HeapIdle),
-	// }
-	// metricsMap["HeapInuse"] = models.Metric{
-	// 	Value: models.MetricValue(m.HeapInuse),
-	// }
-	// metricsMap["HeapObjects"] = models.Metric{
-	// 	Value: models.MetricValue(m.HeapObjects),
-	// }
-	// metricsMap["HeapReleased"] = models.Metric{
-	// 	Value: models.MetricValue(m.HeapReleased),
-	// }
-	// metricsMap["HeapSys"] = models.Metric{
-	// 	Value: models.MetricValue(m.HeapSys),
-	// }
-	// metricsMap["LastGC"] = models.Metric{
-	// 	Value: models.MetricValue(m.LastGC),
-	// }
-	// metricsMap["Lookups"] = models.Metric{
-	// 	Value: models.MetricValue(m.Lookups),
-	// }
-	// metricsMap["MCacheInuse"] = models.Metric{
-	// 	Value: models.MetricValue(m.MCacheInuse),
-	// }
-	// metricsMap["MCacheSys"] = models.Metric{
-	// 	Value: models.MetricValue(m.MCacheSys),
-	// }
-	// metricsMap["MSpanInuse"] = models.Metric{
-	// 	Value: models.MetricValue(m.MSpanInuse),
-	// }
-	// metricsMap["MSpanSys"] = models.Metric{
-	// 	Value: models.MetricValue(m.MSpanSys),
-	// }
-	// metricsMap["Mallocs"] = models.Metric{
-	// 	Value: models.MetricValue(m.Mallocs),
-	// }
-	// metricsMap["NextGC"] = models.Metric{
-	// 	Value: models.MetricValue(m.NextGC),
-	// }
-	// metricsMap["NumForcedGC"] = models.Metric{
-	// 	Value: models.MetricValue(m.NumForcedGC),
-	// }
-	// metricsMap["NumGC"] = models.Metric{
-	// 	Value: models.MetricValue(m.NumGC),
-	// }
-	// metricsMap["OtherSys"] = models.Metric{
-	// 	Value: models.MetricValue(m.OtherSys),
-	// }
-	// metricsMap["PauseTotalNs"] = models.Metric{
-	// 	Value: models.MetricValue(m.PauseTotalNs),
-	// }
-	// metricsMap["StackInuse"] = models.Metric{
-	// 	Value: models.MetricValue(m.StackInuse),
-	// }
-	// metricsMap["StackSys"] = models.Metric{
-	// 	Value: models.MetricValue(m.StackSys),
-	// }
-	// metricsMap["Sys"] = models.Metric{
-	// 	Value: models.MetricValue(m.Sys),
-	// }
-	// metricsMap["TotalAlloc"] = models.Metric{
-	// 	Value: models.MetricValue(m.TotalAlloc),
-	// }
+
 }
