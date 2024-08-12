@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"metal/internal/pkg/domain/repositories"
 	service "metal/internal/server/application/metrics-service"
 	"net/http"
