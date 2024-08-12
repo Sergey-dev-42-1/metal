@@ -84,10 +84,6 @@ func createMetricsMap(m runtime.MemStats) []models.Metric {
 		Type:  "gauge",
 		Value: models.MetricValue(m.HeapInuse),
 	}, models.Metric{
-		Name:  "HeapInuse",
-		Type:  "gauge",
-		Value: models.MetricValue(m.HeapInuse),
-	}, models.Metric{
 		Name:  "HeapObjects",
 		Type:  "gauge",
 		Value: models.MetricValue(m.HeapObjects),

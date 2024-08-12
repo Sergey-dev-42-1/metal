@@ -25,7 +25,7 @@ func Test_CreateMetricsMap(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ms := runtime.MemStats{}
 			res := createMetricsMap(ms)
-			assert.Equal(t, len(res), 8)
+			assert.Equal(t,  29, len(res)) //27 main metrics + 2 additional
 		})
 	}
 }
