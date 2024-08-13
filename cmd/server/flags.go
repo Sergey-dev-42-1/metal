@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"flag"
+	"metal/config"
 	"strconv"
 	"strings"
 )
-
+var cfg = config.GetConfig()
 var startAddress Address
 
 // Можно доработать для больше разбивки на детали(протокол и т.д)
@@ -38,4 +39,7 @@ func parseFlags() {
 	}
 	flag.Var(&startAddress, "a", "host and port which server will run on")
 	flag.Parse()
+	if cfg.Address != "" {
+		startAddress.addr = cfg.Address
+	}
 }
