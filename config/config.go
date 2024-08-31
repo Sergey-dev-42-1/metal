@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-
 	"github.com/caarlos0/env/v6"
 )
 

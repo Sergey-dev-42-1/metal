@@ -6,7 +6,7 @@ import (
 )
 
 func Router() *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
 	
 	return r
 }

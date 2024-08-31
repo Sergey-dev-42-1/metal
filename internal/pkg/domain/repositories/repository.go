@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
+
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
 )
@@ -31,7 +31,7 @@ func (m *MemStorage) Find(name string) (models.Metric, error) {
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metric) models.Metric {
 
-	fmt.Println("Create or update metric")
+	// fmt.Println("Create or update metric")
 
 	var name = metric.Name
 	var tp = metric.Type

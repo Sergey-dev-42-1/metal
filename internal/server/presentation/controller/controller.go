@@ -9,10 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type MetricsController struct {
+	r *gin.Engine
+}
+
+func New(r *gin.Engine) *MetricsController {
+	return &MetricsController{
+		r,
+	}
+}
+
 // Это было в роутере, но тогда не получится протестировать контроллер
 // т.к. будет циклическая зависимость между ним и роутером (роутер -> контроллер -> роутер)
-func AddMetricRoutes(r *gin.Engine) *gin.Engine {
-	root := r.Group("/")
+func (mc *MetricsController) AddRoutes() *gin.Engine {
+	root := mc.r.Group("/")
 	{
 		root.GET("/", HandleGetStoredValuesHTML)
 
@@ -25,7 +35,7 @@ func AddMetricRoutes(r *gin.Engine) *gin.Engine {
 			value.GET(":type/:name", HandleGetMetricValue)
 		}
 	}
-	return r
+	return mc.r
 }
 
 func HandleMetricRecording(c *gin.Context) {
