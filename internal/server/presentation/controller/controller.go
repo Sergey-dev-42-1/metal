@@ -119,7 +119,7 @@ func HandleGetMetricValue(c *gin.Context) {
 		return
 	}
 	if metric.MType == "counter" {
-		c.String(200, "%s", metric.Value)
+		c.String(200, "%s", fmt.Sprintf("%d", *metric.Delta))
 		return
 	}
 	c.String(200, "%s", fmt.Sprintf("%g", *metric.Value))
