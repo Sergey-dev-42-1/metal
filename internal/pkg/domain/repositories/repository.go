@@ -40,7 +40,6 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			m.Metrics[name] = metric
 			return metric
 		}
-		fmt.Println("test",*m.Metrics[name].Delta, *metric.Delta)
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
