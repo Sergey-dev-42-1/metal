@@ -2,6 +2,7 @@ package main
 
 import (
 	"metal/internal/pkg/domain/repositories"
+	"metal/internal/pkg/gzip"
 	"metal/internal/pkg/logger"
 	service "metal/internal/server/application/metrics-service"
 	"metal/internal/server/presentation/controller"
@@ -13,6 +14,8 @@ func main() {
 	r := router.Router()
 	logger.New("debug")
 	r.Use(logger.Logger())
+	r.Use(gzip.GzipHandler())
+
 	mc := controller.New(r)
 	r = mc.AddRoutes()
 	//Не будет работать если запускать сервер не из корневой папки

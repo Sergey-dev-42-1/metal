@@ -1,7 +1,10 @@
 package update
 
 import (
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
+	"io"
 	"metal/internal/agent/application/update/interfaces"
 	"metal/internal/pkg/domain/models"
 
@@ -9,19 +12,20 @@ import (
 )
 
 type UpdateService struct {
-	addr string
+	addr   string
+	client *resty.Client
 }
 
 func New(a string) interfaces.UpdateService {
+	client := resty.New()
+	client.BaseURL = "http://" + a
 	return &UpdateService{
-		addr: a,
+		addr:   a,
+		client: client,
 	}
 }
 
-func (s *UpdateService) UpdateMetrics(metric models.Metrics) (*resty.Response) {
-
-	client := resty.New()
-	client.BaseURL = "http://" + s.addr
+func (s *UpdateService) UpdateMetrics(metric models.Metrics) *resty.Response {
 	p := map[string]string{
 		"type": metric.MType,
 		"name": metric.ID,
@@ -36,15 +40,26 @@ func (s *UpdateService) UpdateMetrics(metric models.Metrics) (*resty.Response) {
 	}
 
 	fmt.Printf("Updating metrics on server %s:%f \n", metric.ID, *metric.Value)
-	res, _ := client.R().SetPathParams(p).Post("/update/{type}/{name}/{value}")
+	res, _ := s.client.R().SetPathParams(p).Post("/update/{type}/{name}/{value}")
 	return res
 }
-func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) (*resty.Response) {
 
-	client := resty.New()
-	client.BaseURL = "http://" + s.addr
+func compressJSON(w io.Writer, i interface{}) error {
+	gz := gzip.NewWriter(w)
+	if err := json.NewEncoder(gz).Encode(i); err != nil {
+		return err
+	}
+	return gz.Close()
+}
+func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) *resty.Response {
+	r, w := io.Pipe()
+	go func() {
+		err := compressJSON(w, metric)
+		w.CloseWithError(err)
+	}()
 	fmt.Printf("Updating metrics on server %s: \n", metric.ID)
-	res, _ := client.R().SetBody(&metric).Post("update")
+	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
+	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("update")
 	fmt.Println(string(res.Body()))
 	return res
 }
