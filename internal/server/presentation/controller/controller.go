@@ -94,6 +94,7 @@ func HandleMetricRecording(c *gin.Context) {
 	mv, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		c.String(400, "%s", "Value is not a number")
+		return
 	}
 	metric.Value = &mv
 	if v, err := strconv.ParseInt(value, 0, 64); err == nil {
