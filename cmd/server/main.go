@@ -19,4 +19,5 @@ func main() {
 	r.LoadHTMLGlob("internal/server/presentation/templates/*.html")
 	service.SetStorage(repositories.New())
 	r.Run(startAddress.String())
+
 }

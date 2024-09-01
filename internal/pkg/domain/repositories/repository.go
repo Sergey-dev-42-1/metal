@@ -40,10 +40,13 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			m.Metrics[name] = metric
 			return metric
 		}
-		newDelta := *m.Metrics[name].Delta + *metric.Delta
+		var newDelta int64
+
+		newDelta = *m.Metrics[name].Delta + *metric.Delta
+
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
-			Value: nil,
+			Value: metric.Value,
 			MType: tp,
 			ID:    name,
 		}
