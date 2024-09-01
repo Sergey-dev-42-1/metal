@@ -6,5 +6,6 @@ import (
 )
 
 type UpdateService interface {
-	UpdateMetrics(models.Metric) (*resty.Response, error)
+	UpdateMetrics(models.Metrics) (*resty.Response, error)
+	UpdateMetricsJSON(models.Metrics) (*resty.Response, error)
 }

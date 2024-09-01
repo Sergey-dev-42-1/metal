@@ -5,8 +5,8 @@ import (
 )
 
 type MetricsStorage interface {
-	Find(name string) (models.Metric, error)
-	GetAll() map[string]models.Metric
-	CreateOrUpdate(metric models.Metric) models.Metric
+	Find(name string) (models.Metrics, error)
+	GetAll() map[string]models.Metrics
+	CreateOrUpdate(metric models.Metrics) models.Metrics
 	Remove(name string) error
 }

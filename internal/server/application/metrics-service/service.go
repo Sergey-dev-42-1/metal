@@ -17,15 +17,15 @@ var db interfaces.MetricsStorage
 // 	}
 // }
 
-func CreateOrUpdateMetric(metric models.Metric) models.Metric {
+func CreateOrUpdateMetric(metric models.Metrics) models.Metrics {
 	return db.CreateOrUpdate(metric)
 }
 
-func GetAllMetrics() map[string]models.Metric {
+func GetAllMetrics() map[string]models.Metrics {
 	return db.GetAll()
 }
 
-func FindMetric(name string) (models.Metric, error) {
+func FindMetric(name string) (models.Metrics, error) {
 	return db.Find(name)
 }
 

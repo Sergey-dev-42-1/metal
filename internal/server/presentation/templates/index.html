@@ -62,8 +62,12 @@
         <div class="container">
             {{ if .}} {{range .}}
             <div class="metric">
-                <div class="metric__header">{{ .Name }}</div>
-                <div class="metric__value">{{printf "%.2f" .Value }}</div>
+                <div class="metric__header">{{ .ID }}</div>
+                {{ if .Value}}
+                <div class="metric__value">{{ .Value }}</div>
+                {{ else }}
+                <div class="metric__value">{{ .Delta }}</div>
+                {{end}}
             </div>
             {{end}} {{ else }}
             <div>Метрик еще нет, обновите страницу позже</div>

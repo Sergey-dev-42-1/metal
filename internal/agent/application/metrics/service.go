@@ -27,9 +27,9 @@ func New(a string, r int, p int) interfaces.MetricsService {
 	}
 }
 
-var stats []models.Metric
+var stats []models.Metrics
 var pollCount int64
-var randomValue int64
+var randomValue float64
 var collectedMetrics = []string{"Alloc", "BuckHashSys", "Frees", "GCCPUFraction", "GCSys", "HeapAlloc", "HeapIdle",
 	"HeapInuse", "HeapObjects", "HeapReleased", "HeapSys", "LastGC", "Lookups", "MCacheInuse", "MCacheSys", "MSpanInuse",
 	"MSpanSys", "Mallocs", "NextGC", "NumForcedGC", "NumGC", "OtherSys", "PauseTotalNs", "StackInuse", "StackSys",
@@ -49,18 +49,22 @@ func (s *MetricsService) CollectMemStats() {
 func (s *MetricsService) SendMemStats() {
 	for {
 		time.Sleep(time.Duration(s.reportInterval) * time.Second)
-		pollCount = 0
-		fmt.Println("Saving metrics")
 		service := updateService.New(s.addr)
 		for _, v := range stats {
-			go service.UpdateMetrics(v)
+			if v.ID == "PollCount" {
+				go func() {
+					service.UpdateMetricsJSON(v)
+					pollCount = 0
+				}()
+			}
+			go service.UpdateMetricsJSON(v)
 		}
 	}
 }
 
-func convertToMetrics(m runtime.MemStats) []models.Metric {
+func convertToMetrics(m runtime.MemStats) []models.Metrics {
 	val := reflect.ValueOf(m)
-	metrics := []models.Metric{}
+	metrics := []models.Metrics{}
 	for i := range val.NumField() {
 		key := val.Type().Field(i).Name
 
@@ -70,49 +74,50 @@ func convertToMetrics(m runtime.MemStats) []models.Metric {
 		if keyID == -1 {
 			continue
 		}
-		var value models.MetricValue
+		metric := models.Metrics{}
 		fieldValue := val.Field(i)
 		fieldType := val.Field(i).Type().Name()
 
 		switch fieldType {
 		case "uint64":
-			value = models.MetricValue(fieldValue.Uint())
+			val := float64(fieldValue.Uint())
+			metric.Value = &val
 		case "uint32":
-			value = models.MetricValue(fieldValue.Uint())
+			val := float64(fieldValue.Uint())
+			metric.Value = &val
 		case "int64":
-			value = models.MetricValue(fieldValue.Int())
+			val := float64(fieldValue.Int())
+			metric.Value = &val
 		case "float64":
-			value = models.MetricValue(fieldValue.Float())
+			val := float64(fieldValue.Float())
+			metric.Value = &val
 		default:
 			fmt.Printf("Unsupported value type in struct %s", fieldType)
 			continue
 		}
-
-		metrics = append(metrics, models.Metric{
-			Value: value,
-			Type:  "gauge",
-			Name:  key,
-		})
+		metric.ID = key
+		metric.MType = "gauge"
+		metrics = append(metrics, metric)
 
 	}
 	return metrics
 }
 
-func createMetricsMap(m runtime.MemStats) []models.Metric {
+func createMetricsMap(m runtime.MemStats) []models.Metrics {
 
 	pollCount++
-	randomValue = rand.Int63n(1000000)
+	randomValue = rand.Float64() * 1000000
 
-	metricsMap := []models.Metric{}
+	metricsMap := []models.Metrics{}
 
-	metricsMap = append(metricsMap, models.Metric{
-		Value: models.MetricValue(pollCount),
-		Type:  "counter",
-		Name:  "PollCount",
-	}, models.Metric{
-		Value: models.MetricValue(randomValue),
-		Type:  "gauge",
-		Name:  "RandomValue",
+	metricsMap = append(metricsMap, models.Metrics{
+		ID:    "PollCount",
+		MType: "counter",
+		Delta: &pollCount,
+	}, models.Metrics{
+		ID:    "RandomValue",
+		MType: "gauge",
+		Value: &randomValue,
 	})
 	metricsMap = append(metricsMap, convertToMetrics(m)...)
 	return metricsMap

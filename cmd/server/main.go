@@ -16,7 +16,7 @@ func main() {
 	mc := controller.New(r)
 	r = mc.AddRoutes()
 	//Не будет работать если запускать сервер не из корневой папки
-	r.LoadHTMLGlob("internal/server/presentation/templates/*.html")
+	r.LoadHTMLGlob("../../internal/server/presentation/templates/*.html")
 	service.SetStorage(repositories.New())
 	r.Run(startAddress.String())
 }
