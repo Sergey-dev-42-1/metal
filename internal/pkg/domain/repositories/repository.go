@@ -5,18 +5,21 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
 )
 
 type MemStorage struct {
+	mx              sync.Mutex
 	Metrics         map[string]models.Metrics
 	FileStoragePath string
 }
 
 func New(fileStoragePath string) interfaces.MetricsStorage {
 	storage := &MemStorage{
+		mx:              sync.Mutex{},
 		Metrics:         make(map[string]models.Metrics),
 		FileStoragePath: fileStoragePath,
 	}
@@ -71,6 +74,7 @@ func (m *MemStorage) Find(name string) (models.Metrics, error) {
 }
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
+
 	fmt.Println("Create or update metric")
 	var name = metric.ID
 	var tp = metric.MType
@@ -78,7 +82,9 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	if _, ok := m.Metrics[name]; ok {
 		if tp == "gauge" {
 			metric.Delta = nil
+			m.mx.Lock()
 			m.Metrics[name] = metric
+			m.mx.Unlock()
 			return metric
 		}
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
@@ -91,7 +97,9 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 		}
 		return m.Metrics[name]
 	}
+	m.mx.Lock()
 	m.Metrics[name] = metric
+	m.mx.Unlock()
 	return metric
 }
 
