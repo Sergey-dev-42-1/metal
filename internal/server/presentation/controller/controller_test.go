@@ -50,7 +50,7 @@ func TestHandleMetricRecording(t *testing.T) {
 			r := router.Router()
 			mc:= New(r)
 			r = mc.AddRoutes()
-			service.SetStorage(repositories.New())
+			service.SetStorage(repositories.New("./save.json"))
 
 			rec, _ := testRequest(t, r, "POST", tt.request)
 

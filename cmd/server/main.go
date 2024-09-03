@@ -77,8 +77,7 @@ func main() {
 	}
 	repo.Save()
 	// catching ctx.Done(). timeout of 3 seconds.
-	select {
-	case <-ctx.Done():
-		log.Println("timeout of 3 seconds.")
-	}
+
+	<-ctx.Done()
+	log.Println("timeout of 3 seconds.")
 }
