@@ -11,11 +11,11 @@ import (
 
 var log *zap.SugaredLogger = zap.NewNop().Sugar()
 
-func New(level string) error {
+func New(level string) (*zap.SugaredLogger, error) {
 
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	fmt.Println(lvl)
 	cfg := zap.NewDevelopmentConfig()
@@ -23,10 +23,10 @@ func New(level string) error {
 	zl, err := cfg.Build()
 	defer zl.Sync()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log = zl.Sugar()
-	return nil
+	return log, nil
 }
 
 type bodyLogWriter struct {

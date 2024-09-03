@@ -60,6 +60,6 @@ func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) *resty.Response
 	fmt.Printf("Updating metrics on server %s: \n", metric.ID)
 	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
 	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("update")
-	fmt.Println(string(res.Body()))
+	// fmt.Println(string(res.Body()))
 	return res
 }

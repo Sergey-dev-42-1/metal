@@ -9,4 +9,6 @@ type MetricsStorage interface {
 	GetAll() map[string]models.Metrics
 	CreateOrUpdate(metric models.Metrics) models.Metrics
 	Remove(name string) error
+	Restore() error
+	Save() error
 }
