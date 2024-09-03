@@ -15,9 +15,9 @@ type ConfigAgent struct {
 
 type ConfigServer struct {
 	Address         string `env:"ADDRESS"`
-	StoreInterval   *int    `env:"STORE_INTERVAL"`
+	StoreInterval   *int   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	Restore         *bool    `env:"REPORT_INTERVAL"`
+	Restore         *bool  `env:"RESTORE"`
 }
 
 func GetConfigAgent() *ConfigAgent {
