@@ -12,14 +12,14 @@ import (
 )
 
 type MemStorage struct {
-	mx              sync.Mutex
+	mx              sync.RWMutex
 	Metrics         map[string]models.Metrics
 	FileStoragePath string
 }
 
 func New(fileStoragePath string) interfaces.MetricsStorage {
 	storage := &MemStorage{
-		mx:              sync.Mutex{},
+		mx:              sync.RWMutex{},
 		Metrics:         make(map[string]models.Metrics),
 		FileStoragePath: fileStoragePath,
 	}
