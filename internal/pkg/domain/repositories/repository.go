@@ -11,7 +11,6 @@ import (
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
 
-
 	"go.uber.org/zap"
 )
 
@@ -89,13 +88,13 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 		m.mx.Lock()
 		if tp == "gauge" {
 			metric.Delta = nil
-			
+
 			m.Metrics[name] = metric
 			m.mx.Unlock()
 			return metric
 		}
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
-	
+
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
 			Value: metric.Value,
@@ -112,7 +111,7 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 }
 
 func (m *MemStorage) Ping() error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 }
 
 func (m *MemStorage) Remove(name string) error {
@@ -145,7 +144,7 @@ func NewSQLStorage(URL string, l *zap.SugaredLogger) interfaces.MetricsStorage {
 func (s *SQLStorage) Ping() error {
 	s.l.Infoln("test ping sql")
 	err := s.db.Ping()
-	if (err != nil) {
+	if err != nil {
 		s.l.Infof("test ping sql %s", err)
 	}
 	return s.db.Ping()
