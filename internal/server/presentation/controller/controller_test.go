@@ -48,8 +48,9 @@ func TestHandleMetricRecording(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := router.Router()
-			r = AddMetricRoutes(r)
-			service.SetStorage(repositories.New())
+			mc:= New(r)
+			r = mc.AddRoutes()
+			service.SetStorage(repositories.New("./save.json"))
 
 			rec, _ := testRequest(t, r, "POST", tt.request)
 

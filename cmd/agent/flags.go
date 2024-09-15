@@ -11,7 +11,7 @@ var (
 	pollInterval   int
 )
 
-var cfg = config.GetConfig()
+var cfg = config.GetConfigAgent()
 
 func parseFlags() {
 
@@ -22,7 +22,7 @@ func parseFlags() {
 	if cfg.Address != "" {
 		startAddress = cfg.Address
 	}
-	if cfg.PollInterval != 0 {
+	if cfg.ReportInterval != 0 {
 		reportInterval = cfg.ReportInterval
 	}
 	if cfg.PollInterval != 0 {

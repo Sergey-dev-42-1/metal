@@ -1,28 +1,8 @@
 package models
 
-import (
-	"fmt"
-)
-
-type MetricValue float64
-
-func (v MetricValue) ToInt64() int64 {
-	return int64(v)
-}
-func (v MetricValue) ToString() string {
-	return fmt.Sprintf("%d", v.ToInt64())
-}
-func (v MetricValue) ToStringFloat() string {
-	return fmt.Sprintf("%g", v)
-}
-
-type Metric struct {
-	Value MetricValue
-	Type  string
-	Name  string
-}
-type MetricServiceClient struct {
-	Value MetricValue
-	Type  string
-	Name  string
-}
+type Metrics struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+ } 
