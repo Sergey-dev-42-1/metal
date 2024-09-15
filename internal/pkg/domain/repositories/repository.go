@@ -36,9 +36,11 @@ func (m *MemStorage) GetAll() map[string]models.Metrics {
 }
 
 func (m *MemStorage) Restore() error {
+	m.mx.Lock()
 	content, err := os.ReadFile(m.FileStoragePath)
 	if err != nil {
 		fmt.Println("Had an issue when trying to open file", err)
+		m.mx.Unlock()
 		return err
 	}
 	// scanner := bufio.NewScanner(file)
@@ -49,10 +51,12 @@ func (m *MemStorage) Restore() error {
 	errRead := json.Unmarshal(content, &metrics)
 	if errRead != nil {
 		fmt.Println("Had an issue when trying to restore saved values", errRead)
+		m.mx.Unlock()
 		return errRead
 	}
 	m.Metrics = metrics
 	fmt.Println("Successfully restored values from ", m.FileStoragePath)
+	m.mx.Unlock()
 	return nil
 }
 func (m *MemStorage) Save() error {
@@ -72,9 +76,12 @@ func (m *MemStorage) Save() error {
 }
 
 func (m *MemStorage) Find(name string) (models.Metrics, error) {
+	m.mx.Lock()
 	if val, ok := m.Metrics[name]; ok {
+		m.mx.Unlock()
 		return val, nil
 	}
+	m.mx.Unlock()
 	return models.Metrics{}, errors.New("no such metric")
 }
 
@@ -88,7 +95,6 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 		m.mx.Lock()
 		if tp == "gauge" {
 			metric.Delta = nil
-
 			m.Metrics[name] = metric
 			m.mx.Unlock()
 			return metric
@@ -102,6 +108,7 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			ID:    name,
 		}
 		m.mx.Unlock()
+
 		return m.Metrics[name]
 	}
 	m.mx.Lock()
@@ -116,7 +123,9 @@ func (m *MemStorage) Ping() error {
 
 func (m *MemStorage) Remove(name string) error {
 	if _, ok := m.Metrics[name]; ok {
+		m.mx.Lock()
 		delete(m.Metrics, name)
+		m.mx.Unlock()
 		return nil
 	}
 	return errors.New("no such metric")
