@@ -32,12 +32,12 @@ func (mc *MetricsController) AddRoutes() *gin.Engine {
 	{
 		root.GET("/", mc.HandleGetStoredValuesHTML)
 		root.GET("/ping", mc.Ping)
-		update := root.Group("/update/")
+		update := root.Group("/update")
 		{
 			update.POST("/", mc.HandleMetricRecordingJSON)
 			update.POST(":type/:name/:value", mc.HandleMetricRecording)
 		}
-		value := root.Group("/value/")
+		value := root.Group("/value")
 		{
 			value.POST("/", mc.HandleGetMetricValueJSON)
 			value.GET(":type/:name", mc.HandleGetMetricValue)

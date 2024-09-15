@@ -55,12 +55,14 @@ func (m *MemStorage) Restore() error {
 		return errRead
 	}
 	m.Metrics = metrics
-	fmt.Println("Successfully restored values from ", m.FileStoragePath)
 	m.mx.Unlock()
+	fmt.Println("Successfully restored values from ", m.FileStoragePath)
 	return nil
 }
 func (m *MemStorage) Save() error {
+	m.mx.RLock()
 	data, err := json.MarshalIndent(m.Metrics, "", "	")
+	m.mx.RUnlock()
 	if err != nil {
 		fmt.Println("Had an issue converting to json", err)
 		return err
@@ -76,12 +78,12 @@ func (m *MemStorage) Save() error {
 }
 
 func (m *MemStorage) Find(name string) (models.Metrics, error) {
-	m.mx.Lock()
+	m.mx.RLock()
 	if val, ok := m.Metrics[name]; ok {
-		m.mx.Unlock()
+		m.mx.RUnlock()
 		return val, nil
 	}
-	m.mx.Unlock()
+	m.mx.RUnlock()
 	return models.Metrics{}, errors.New("no such metric")
 }
 
@@ -92,15 +94,19 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	var tp = metric.MType
 
 	if _, ok := m.Metrics[name]; ok {
-		m.mx.Lock()
+
 		if tp == "gauge" {
 			metric.Delta = nil
+			m.mx.Lock()
 			m.Metrics[name] = metric
 			m.mx.Unlock()
 			return metric
 		}
+		
+		m.mx.RLock()
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
-
+		m.mx.RUnlock()
+		m.mx.Lock()
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
 			Value: metric.Value,
@@ -108,6 +114,7 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			ID:    name,
 		}
 		m.mx.Unlock()
+		
 
 		return m.Metrics[name]
 	}
