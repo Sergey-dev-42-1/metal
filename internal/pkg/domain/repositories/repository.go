@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,17 +10,22 @@ import (
 
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
+
+
+	"go.uber.org/zap"
 )
 
 type MemStorage struct {
 	mx              sync.RWMutex
+	l               *zap.SugaredLogger
 	Metrics         map[string]models.Metrics
 	FileStoragePath string
 }
 
-func New(fileStoragePath string) interfaces.MetricsStorage {
+func NewMemStorage(fileStoragePath string, l *zap.SugaredLogger) interfaces.MetricsStorage {
 	storage := &MemStorage{
 		mx:              sync.RWMutex{},
+		l:               l,
 		Metrics:         make(map[string]models.Metrics),
 		FileStoragePath: fileStoragePath,
 	}
@@ -103,6 +109,10 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	return metric
 }
 
+func (m *MemStorage) Ping() error {
+	return errors.New("Not implemented")
+}
+
 func (m *MemStorage) Remove(name string) error {
 	if _, ok := m.Metrics[name]; ok {
 		delete(m.Metrics, name)
@@ -110,4 +120,56 @@ func (m *MemStorage) Remove(name string) error {
 	}
 	return errors.New("no such metric")
 
+}
+
+type SQLStorage struct {
+	l  *zap.SugaredLogger
+	db *sql.DB
+}
+
+func NewSQLStorage(URL string, l *zap.SugaredLogger) interfaces.MetricsStorage {
+	db, err := sql.Open("pgx", URL)
+	if err != nil {
+		l.Errorf("Couldn't establish connection with DB on following URL: %s %s", URL, err)
+		return NewMemStorage("./save.json", l)
+	}
+
+	return &SQLStorage{
+		db: db,
+		l:  l,
+	}
+}
+
+func (s *SQLStorage) Ping() error {
+	s.l.Infoln("test ping sql")
+	err := s.db.Ping()
+	if (err != nil) {
+		s.l.Infof("test ping sql %s", err)
+	}
+	return s.db.Ping()
+}
+
+func (m *SQLStorage) GetAll() map[string]models.Metrics {
+	return make(map[string]models.Metrics)
+}
+
+func (m *SQLStorage) Restore() error {
+	return errors.New("Not available / needed in this implementation")
+}
+func (m *SQLStorage) Save() error {
+	return errors.New("Not implemented")
+}
+
+func (m *SQLStorage) Find(name string) (models.Metrics, error) {
+	var ptr models.Metrics
+	return ptr, errors.New("Not implemented")
+}
+
+func (m *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
+	var ptr models.Metrics
+	return ptr
+}
+
+func (m SQLStorage) Remove(name string) error {
+	return errors.New("Not implemented")
 }
