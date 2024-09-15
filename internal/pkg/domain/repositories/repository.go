@@ -86,21 +86,23 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	var tp = metric.MType
 
 	if _, ok := m.Metrics[name]; ok {
+		m.mx.Lock()
 		if tp == "gauge" {
 			metric.Delta = nil
-			m.mx.Lock()
+			
 			m.Metrics[name] = metric
 			m.mx.Unlock()
 			return metric
 		}
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
-
+	
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
 			Value: metric.Value,
 			MType: tp,
 			ID:    name,
 		}
+		m.mx.Unlock()
 		return m.Metrics[name]
 	}
 	m.mx.Lock()
@@ -149,27 +151,27 @@ func (s *SQLStorage) Ping() error {
 	return s.db.Ping()
 }
 
-func (m *SQLStorage) GetAll() map[string]models.Metrics {
+func (s *SQLStorage) GetAll() map[string]models.Metrics {
 	return make(map[string]models.Metrics)
 }
 
-func (m *SQLStorage) Restore() error {
-	return errors.New("Not available / needed in this implementation")
+func (s *SQLStorage) Restore() error {
+	return errors.New("not available / needed in this implementation")
 }
-func (m *SQLStorage) Save() error {
-	return errors.New("Not implemented")
+func (s *SQLStorage) Save() error {
+	return errors.New("not implemented")
 }
 
-func (m *SQLStorage) Find(name string) (models.Metrics, error) {
+func (s *SQLStorage) Find(name string) (models.Metrics, error) {
 	var ptr models.Metrics
-	return ptr, errors.New("Not implemented")
+	return ptr, errors.New("not implemented")
 }
 
-func (m *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
+func (s *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	var ptr models.Metrics
 	return ptr
 }
 
-func (m SQLStorage) Remove(name string) error {
-	return errors.New("Not implemented")
+func (s *SQLStorage) Remove(name string) error {
+	return errors.New("not implemented")
 }
