@@ -1,0 +1,12 @@
+{
+	"GetSet144": {
+		"id": "GetSet144",
+		"type": "counter",
+		"delta": 1105526682
+	},
+	"GetSet184": {
+		"id": "GetSet184",
+		"type": "gauge",
+		"value": 926355.9798050034
+	}
+}

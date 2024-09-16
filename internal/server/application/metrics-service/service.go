@@ -3,32 +3,37 @@ package service
 import (
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
+
+	"go.uber.org/zap"
 )
 
-var db interfaces.MetricsStorage
-
-// type MetricsService struct {
-// 	repo interfaces.MetricsStorage
-// }
-
-// func New(r interfaces.MetricsStorage) *MetricsService {
-// 	return &MetricsService{
-// 		repo: r,
-// 	}
-// }
-
-func CreateOrUpdateMetric(metric models.Metrics) models.Metrics {
-	return db.CreateOrUpdate(metric)
+type MetricsService struct {
+	repo interfaces.MetricsStorage
+	l    *zap.SugaredLogger
 }
 
-func GetAllMetrics() map[string]models.Metrics {
-	return db.GetAll()
+func New(r interfaces.MetricsStorage, l *zap.SugaredLogger) *MetricsService {
+	return &MetricsService{
+		repo: r,
+		l:    l,
+	}
 }
 
-func FindMetric(name string) (models.Metrics, error) {
-	return db.Find(name)
+func (s *MetricsService) CreateOrUpdateMetric(metric models.Metrics) models.Metrics {
+	return s.repo.CreateOrUpdate(metric)
 }
 
-func SetStorage(ms interfaces.MetricsStorage) {
-	db = ms
+func (s *MetricsService) CreateOrUpdateMetricBatch(metrics []models.Metrics) error {
+	return s.repo.CreateOrUpdateBatch(metrics)
+}
+
+func (s *MetricsService) GetAllMetrics() map[string]models.Metrics {
+	return s.repo.GetAll()
+}
+
+func (s *MetricsService) FindMetric(name string) (models.Metrics, error) {
+	return s.repo.Find(name)
+}
+func (s *MetricsService) Ping() error {
+	return s.repo.Ping()
 }

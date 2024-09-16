@@ -11,6 +11,7 @@ type ConfigAgent struct {
 	Address        string `env:"ADDRESS"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
+	Batching       *bool   `env:"BATCHING"`
 }
 
 type ConfigServer struct {
@@ -18,6 +19,7 @@ type ConfigServer struct {
 	StoreInterval   *int   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         *bool  `env:"RESTORE"`
+	ConnectionURL   string `env:"DATABASE_DSN"`
 }
 
 func GetConfigAgent() *ConfigAgent {
@@ -26,7 +28,7 @@ func GetConfigAgent() *ConfigAgent {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.PollInterval, cfg.ReportInterval)
+	fmt.Println(cfg.Address, cfg.PollInterval, cfg.ReportInterval, cfg.Batching)
 	return &cfg
 }
 
@@ -36,6 +38,6 @@ func GetConfigServer() *ConfigServer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath)
+	fmt.Println(cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath, cfg.ConnectionURL)
 	return &cfg
 }
