@@ -15,7 +15,7 @@ import (
 )
 
 type MemStorage struct {
-	mx              sync.RWMutex
+	mx              sync.Mutex
 	l               *zap.SugaredLogger
 	Metrics         map[string]models.Metrics
 	FileStoragePath string
@@ -23,7 +23,6 @@ type MemStorage struct {
 
 func NewMemStorage(fileStoragePath string, l *zap.SugaredLogger) interfaces.MetricsStorage {
 	storage := &MemStorage{
-		mx:              sync.RWMutex{},
 		l:               l,
 		Metrics:         make(map[string]models.Metrics),
 		FileStoragePath: fileStoragePath,
@@ -32,11 +31,12 @@ func NewMemStorage(fileStoragePath string, l *zap.SugaredLogger) interfaces.Metr
 }
 
 func (m *MemStorage) GetAll() map[string]models.Metrics {
+	m.mx.Lock()
+	defer m.mx.Unlock()
 	return m.Metrics
 }
 
 func (m *MemStorage) Restore() error {
-	m.mx.Lock()
 	content, err := os.ReadFile(m.FileStoragePath)
 	if err != nil {
 		fmt.Println("Had an issue when trying to open file", err)
@@ -48,21 +48,22 @@ func (m *MemStorage) Restore() error {
 	// file.Close()
 	// fmt.Println(scanner.Text())
 	metrics := map[string]models.Metrics{}
+	m.mx.Lock()
+	defer m.mx.Unlock()
 	errRead := json.Unmarshal(content, &metrics)
 	if errRead != nil {
 		fmt.Println("Had an issue when trying to restore saved values", errRead)
-		m.mx.Unlock()
+		
 		return errRead
 	}
 	m.Metrics = metrics
-	m.mx.Unlock()
 	fmt.Println("Successfully restored values from ", m.FileStoragePath)
 	return nil
 }
 func (m *MemStorage) Save() error {
-	m.mx.RLock()
+	m.mx.Lock()
 	data, err := json.MarshalIndent(m.Metrics, "", "	")
-	m.mx.RUnlock()
+	m.mx.Unlock()
 	if err != nil {
 		fmt.Println("Had an issue converting to json", err)
 		return err
@@ -78,12 +79,12 @@ func (m *MemStorage) Save() error {
 }
 
 func (m *MemStorage) Find(name string) (models.Metrics, error) {
-	m.mx.RLock()
+	m.mx.Lock()
+	defer m.mx.Unlock()
 	if val, ok := m.Metrics[name]; ok {
-		m.mx.RUnlock()
+		
 		return val, nil
 	}
-	m.mx.RUnlock()
 	return models.Metrics{}, errors.New("no such metric")
 }
 
@@ -102,11 +103,9 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			m.mx.Unlock()
 			return metric
 		}
-		
-		m.mx.RLock()
-		newDelta := *m.Metrics[name].Delta + *metric.Delta
-		m.mx.RUnlock()
+
 		m.mx.Lock()
+		newDelta := *m.Metrics[name].Delta + *metric.Delta
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
 			Value: metric.Value,
@@ -114,8 +113,6 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			ID:    name,
 		}
 		m.mx.Unlock()
-		
-
 		return m.Metrics[name]
 	}
 	m.mx.Lock()
