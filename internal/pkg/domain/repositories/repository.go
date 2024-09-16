@@ -50,14 +50,14 @@ func (m *MemStorage) Restore() error {
 	// file.Close()
 	// fmt.Println(scanner.Text())
 	metrics := map[string]models.Metrics{}
-	m.mx.Lock()
-	defer m.mx.Unlock()
 	errRead := json.Unmarshal(content, &metrics)
 	if errRead != nil {
 		fmt.Println("Had an issue when trying to restore saved values", errRead)
 
 		return errRead
 	}
+	m.mx.Lock()
+	defer m.mx.Unlock()
 	m.Metrics = metrics
 	fmt.Println("Successfully restored values from ", m.FileStoragePath)
 	return nil
@@ -95,9 +95,9 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	fmt.Println("Create or update metric")
 	var name = metric.Name
 	var tp = metric.MType
-
+	m.mx.Lock()
 	if _, ok := m.Metrics[name]; ok {
-
+		m.mx.Unlock()
 		if tp == "gauge" {
 			metric.Delta = nil
 			m.mx.Lock()
@@ -107,6 +107,7 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 		}
 
 		m.mx.Lock()
+		defer m.mx.Unlock()
 		newDelta := *m.Metrics[name].Delta + *metric.Delta
 		m.Metrics[name] = models.Metrics{
 			Delta: &newDelta,
@@ -114,9 +115,9 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			MType: tp,
 			Name:  name,
 		}
-		m.mx.Unlock()
 		return m.Metrics[name]
 	}
+	m.mx.Unlock()
 	m.mx.Lock()
 	m.Metrics[name] = metric
 	m.mx.Unlock()
