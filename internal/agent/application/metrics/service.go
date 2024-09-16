@@ -17,13 +17,15 @@ type MetricsService struct {
 	addr           string
 	reportInterval int
 	pollInterval   int
+	batching       bool
 }
 
-func New(a string, r int, p int) interfaces.MetricsService {
+func New(a string, r int, p int, b bool) interfaces.MetricsService {
 	return &MetricsService{
 		addr:           a,
 		reportInterval: r,
 		pollInterval:   p,
+		batching:       b,
 	}
 }
 
@@ -41,7 +43,12 @@ func (s *MetricsService) CollectMemStats() {
 		memStats := runtime.MemStats{}
 		runtime.ReadMemStats(&memStats)
 		collectedMetrics := createMetricsMap(memStats)
-		stats = collectedMetrics
+		if s.batching {
+			//but why tho?
+			stats = append(stats, collectedMetrics...)
+		} else {
+			stats = collectedMetrics
+		}
 		time.Sleep(time.Duration(s.pollInterval) * time.Second)
 	}
 }
@@ -50,8 +57,15 @@ func (s *MetricsService) SendMemStats() {
 	for {
 		time.Sleep(time.Duration(s.reportInterval) * time.Second)
 		service := updateService.New(s.addr)
+		if s.batching {
+			// don't think there is need to run goroutine
+			service.UpdateMetricsJSONBatch(stats)
+			stats = make([]models.Metrics, 0)
+			pollCount = 0
+			continue
+		}
 		for _, v := range stats {
-			if v.ID == "PollCount" {
+			if v.Name == "PollCount" {
 				go func() {
 					service.UpdateMetricsJSON(v)
 					pollCount = 0
@@ -95,7 +109,7 @@ func convertToMetrics(m runtime.MemStats) []models.Metrics {
 			fmt.Printf("Unsupported value type in struct %s", fieldType)
 			continue
 		}
-		metric.ID = key
+		metric.Name = key
 		metric.MType = "gauge"
 		metrics = append(metrics, metric)
 
@@ -111,11 +125,11 @@ func createMetricsMap(m runtime.MemStats) []models.Metrics {
 	metricsMap := []models.Metrics{}
 
 	metricsMap = append(metricsMap, models.Metrics{
-		ID:    "PollCount",
+		Name:  "PollCount",
 		MType: "counter",
 		Delta: &pollCount,
 	}, models.Metrics{
-		ID:    "RandomValue",
+		Name:  "RandomValue",
 		MType: "gauge",
 		Value: &randomValue,
 	})
