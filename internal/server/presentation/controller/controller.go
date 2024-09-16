@@ -4,43 +4,48 @@ import (
 	"encoding/json"
 	"fmt"
 	"metal/internal/pkg/domain/models"
+	"metal/internal/pkg/domain/repositories/interfaces"
 	service "metal/internal/server/application/metrics-service"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type MetricsController struct {
-	r *gin.Engine
+	metricService *service.MetricsService
+	router        *gin.Engine
 }
 
-func New(r *gin.Engine) *MetricsController {
+func New(r *gin.Engine, l *zap.SugaredLogger, repo interfaces.MetricsStorage) *MetricsController {
+	m := service.New(repo, l)
 	return &MetricsController{
-		r,
+		router:        r,
+		metricService: m,
 	}
 }
 
 // Это было в роутере, но тогда не получится протестировать контроллер
 // т.к. будет циклическая зависимость между ним и роутером (роутер -> контроллер -> роутер)
 func (mc *MetricsController) AddRoutes() *gin.Engine {
-	root := mc.r.Group("/")
+	root := mc.router.Group("/")
 	{
-		root.GET("/", HandleGetStoredValuesHTML)
-
-		update := root.Group("/update/")
+		root.GET("/", mc.HandleGetStoredValuesHTML)
+		root.GET("/ping", mc.Ping)
+		update := root.Group("/update")
 		{
-			update.POST("/", HandleMetricRecordingJSON)
-			update.POST(":type/:name/:value", HandleMetricRecording)
+			update.POST("/", mc.HandleMetricRecordingJSON)
+			update.POST(":type/:name/:value", mc.HandleMetricRecording)
 		}
-		value := root.Group("/value/")
+		value := root.Group("/value")
 		{
-			value.POST("/", HandleGetMetricValueJSON)
-			value.GET(":type/:name", HandleGetMetricValue)
+			value.POST("/", mc.HandleGetMetricValueJSON)
+			value.GET(":type/:name", mc.HandleGetMetricValue)
 		}
 	}
-	return mc.r
+	return mc.router
 }
-func HandleMetricRecordingJSON(c *gin.Context) {
+func (mc *MetricsController) HandleMetricRecordingJSON(c *gin.Context) {
 	if c.Request.Header.Get("Content-Type") != "application/json" {
 		c.String(415, "%s", "Request content is not marked as JSON")
 		return
@@ -70,11 +75,11 @@ func HandleMetricRecordingJSON(c *gin.Context) {
 		return
 	}
 
-	result := service.CreateOrUpdateMetric(metric)
+	result := mc.metricService.CreateOrUpdateMetric(metric)
 	c.JSON(200, result)
 }
 
-func HandleMetricRecording(c *gin.Context) {
+func (mc *MetricsController) HandleMetricRecording(c *gin.Context) {
 	// fmt.Println("Metric controller", c.Params)
 	value := c.Param("value")
 	tp := c.Param("type")
@@ -101,11 +106,11 @@ func HandleMetricRecording(c *gin.Context) {
 		metric.Delta = &v
 	}
 
-	result := service.CreateOrUpdateMetric(metric)
+	result := mc.metricService.CreateOrUpdateMetric(metric)
 	c.String(200, "Successfully written '%s' metric", result.ID)
 }
 
-func HandleGetMetricValue(c *gin.Context) {
+func (mc *MetricsController) HandleGetMetricValue(c *gin.Context) {
 
 	name := c.Param("name")
 
@@ -113,7 +118,7 @@ func HandleGetMetricValue(c *gin.Context) {
 		c.String(404, "%s", "Name of the metric is not specified")
 		return
 	}
-	metric, err := service.FindMetric(name)
+	metric, err := mc.metricService.FindMetric(name)
 	if err != nil {
 		c.String(404, "%s", "Didn't find such metric")
 		return
@@ -125,7 +130,7 @@ func HandleGetMetricValue(c *gin.Context) {
 	c.String(200, "%s", fmt.Sprintf("%g", *metric.Value))
 }
 
-func HandleGetMetricValueJSON(c *gin.Context) {
+func (mc *MetricsController) HandleGetMetricValueJSON(c *gin.Context) {
 	if c.Request.Header.Get("Content-Type") != "application/json" {
 		c.String(415, "%s", "Request content is not marked as JSON")
 		return
@@ -140,7 +145,7 @@ func HandleGetMetricValueJSON(c *gin.Context) {
 		c.String(404, "%s", "Name of the metric is not specified")
 		return
 	}
-	m, err := service.FindMetric(metric.ID)
+	m, err := mc.metricService.FindMetric(metric.ID)
 	// fmt.Println("test read", metric.ID, metric.Delta, metric.Value, metric.MType)
 	if err != nil {
 		c.String(404, "%s", "Didn't find such metric")
@@ -149,9 +154,19 @@ func HandleGetMetricValueJSON(c *gin.Context) {
 	c.JSON(200, m)
 }
 
-func HandleGetStoredValuesHTML(c *gin.Context) {
+func (mc *MetricsController) HandleGetStoredValuesHTML(c *gin.Context) {
 	fmt.Println("Get metric page")
-	metrics := service.GetAllMetrics()
+	metrics := mc.metricService.GetAllMetrics()
 
 	c.HTML(200, "index.html", metrics)
+}
+
+func (mc *MetricsController) Ping(c *gin.Context) {
+	fmt.Println("Get ping")
+	err := mc.metricService.Ping()
+	if err != nil {
+		c.String(500, "%s", "Something went wrong")
+		return
+	}
+	c.String(200, "Ping!")
 }
