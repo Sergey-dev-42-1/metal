@@ -9,4 +9,5 @@ import (
 type UpdateService interface {
 	UpdateMetrics(models.Metrics) *resty.Response
 	UpdateMetricsJSON(models.Metrics) *resty.Response
+	UpdateMetricsJSONBatch([]models.Metrics) *resty.Response
 }

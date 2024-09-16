@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"sync"
-
 	"metal/internal/pkg/domain/models"
 	"metal/internal/pkg/domain/repositories/interfaces"
+	"os"
+	"sync"
 
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -91,7 +90,6 @@ func (m *MemStorage) Find(name string) (models.Metrics, error) {
 }
 
 func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
-
 	fmt.Println("Create or update metric")
 	var name = metric.Name
 	var tp = metric.MType
@@ -122,6 +120,15 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	m.Metrics[name] = metric
 	m.mx.Unlock()
 	return metric
+}
+
+func (m *MemStorage) CreateOrUpdateBatch(metrics []models.Metrics) error {
+	m.mx.Lock()
+	for _, v := range metrics {
+		m.CreateOrUpdate(v)
+	}
+	m.mx.Unlock()
+	return nil
 }
 
 func (m *MemStorage) Ping() error {
@@ -210,7 +217,7 @@ func (s *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	if metric.MType == "counter" {
 		existing, err := s.Find(metric.Name)
 		if err == nil {
-			s.l.Infoln("Creating new")
+			s.l.Infoln("Updating metric")
 			newValue := *metric.Delta + *existing.Delta
 			metric.Delta = &newValue
 			s.db.Model(&models.Metrics{}).Where("name = ?", metric.Name).Update("delta", newValue)
@@ -226,6 +233,20 @@ func (s *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 	}
 	return metric
 }
+
+func (s *SQLStorage) CreateOrUpdateBatch(metrics []models.Metrics) error {
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		for _, v := range metrics {
+			s.CreateOrUpdate(v)
+		}
+		return nil
+	})
+	if err != nil {
+		s.l.Errorf("Something went wrong when creating / upadating value in DB %v", err)
+	}
+	return err
+}
+
 func (s *SQLStorage) Remove(name string) error {
 	s.db.Delete(models.Metrics{Name: name})
 	if s.db.Error != nil {

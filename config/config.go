@@ -11,6 +11,7 @@ type ConfigAgent struct {
 	Address        string `env:"ADDRESS"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
+	Batching       *bool   `env:"BATCHING"`
 }
 
 type ConfigServer struct {
@@ -27,7 +28,7 @@ func GetConfigAgent() *ConfigAgent {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.PollInterval, cfg.ReportInterval)
+	fmt.Println(cfg.Address, cfg.PollInterval, cfg.ReportInterval, cfg.Batching)
 	return &cfg
 }
 

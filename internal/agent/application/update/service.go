@@ -63,3 +63,16 @@ func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) *resty.Response
 	// fmt.Println(string(res.Body()))
 	return res
 }
+
+func (s *UpdateService) UpdateMetricsJSONBatch(metric []models.Metrics) *resty.Response {
+	r, w := io.Pipe()
+	go func() {
+		err := compressJSON(w, metric)
+		w.CloseWithError(err)
+	}()
+	fmt.Printf("Updating metrics on server in batch \n")
+	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
+	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("updates")
+	// fmt.Println(string(res.Body()))
+	return res
+}

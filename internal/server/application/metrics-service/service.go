@@ -23,6 +23,10 @@ func (s *MetricsService) CreateOrUpdateMetric(metric models.Metrics) models.Metr
 	return s.repo.CreateOrUpdate(metric)
 }
 
+func (s *MetricsService) CreateOrUpdateMetricBatch(metrics []models.Metrics) error {
+	return s.repo.CreateOrUpdateBatch(metrics)
+}
+
 func (s *MetricsService) GetAllMetrics() map[string]models.Metrics {
 	return s.repo.GetAll()
 }

@@ -39,6 +39,10 @@ func (mc *MetricsController) AddRoutes() *gin.Engine {
 			update.POST("/", mc.HandleMetricRecordingJSON)
 			update.POST(":type/:name/:value", mc.HandleMetricRecording)
 		}
+		updates := root.Group("/updates")
+		{
+			updates.POST("/", mc.HandleMetricRecordingJSONBatch)
+		}
 		value := root.Group("/value")
 		{
 			value.POST("/", mc.HandleGetMetricValueJSON)
@@ -79,6 +83,22 @@ func (mc *MetricsController) HandleMetricRecordingJSON(c *gin.Context) {
 	}
 
 	result := mc.metricService.CreateOrUpdateMetric(metric)
+	c.JSON(200, result)
+}
+
+func (mc *MetricsController) HandleMetricRecordingJSONBatch(c *gin.Context) {
+	if c.Request.Header.Get("Content-Type") != "application/json" {
+		c.String(415, "%s", "Request content is not marked as JSON")
+		return
+	}
+	metrics := []models.Metrics{}
+	if err := json.NewDecoder(c.Request.Body).Decode(&metrics); err != nil {
+		mc.l.Errorf("%v %v", err, metrics)
+		c.String(500, "%s", "Something went wrong when trying to parse request content")
+		return
+	}
+
+	result := mc.metricService.CreateOrUpdateMetricBatch(metrics)
 	c.JSON(200, result)
 }
 
