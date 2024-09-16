@@ -51,7 +51,7 @@ func (s *MetricsService) SendMemStats() {
 		time.Sleep(time.Duration(s.reportInterval) * time.Second)
 		service := updateService.New(s.addr)
 		for _, v := range stats {
-			if v.ID == "PollCount" {
+			if v.Name == "PollCount" {
 				go func() {
 					service.UpdateMetricsJSON(v)
 					pollCount = 0
@@ -95,7 +95,7 @@ func convertToMetrics(m runtime.MemStats) []models.Metrics {
 			fmt.Printf("Unsupported value type in struct %s", fieldType)
 			continue
 		}
-		metric.ID = key
+		metric.Name = key
 		metric.MType = "gauge"
 		metrics = append(metrics, metric)
 
@@ -111,11 +111,11 @@ func createMetricsMap(m runtime.MemStats) []models.Metrics {
 	metricsMap := []models.Metrics{}
 
 	metricsMap = append(metricsMap, models.Metrics{
-		ID:    "PollCount",
+		Name:  "PollCount",
 		MType: "counter",
 		Delta: &pollCount,
 	}, models.Metrics{
-		ID:    "RandomValue",
+		Name:  "RandomValue",
 		MType: "gauge",
 		Value: &randomValue,
 	})

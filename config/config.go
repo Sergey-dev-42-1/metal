@@ -18,6 +18,7 @@ type ConfigServer struct {
 	StoreInterval   *int   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         *bool  `env:"RESTORE"`
+	ConnectionURL   string `env:"DATABASE_DSN"`
 }
 
 func GetConfigAgent() *ConfigAgent {
@@ -36,6 +37,6 @@ func GetConfigServer() *ConfigServer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath)
+	fmt.Println(cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath, cfg.ConnectionURL)
 	return &cfg
 }

@@ -13,6 +13,7 @@ var (
 	startAddress    Address
 	storeInterval   int
 	fileStoragePath string
+	connectionURL   string
 	restore         bool
 )
 
@@ -46,9 +47,17 @@ func parseFlags() {
 	flag.Var(&startAddress, "a", "host and port which server will run on")
 	flag.IntVar(&storeInterval, "interval", 300, "interval of saving data to disk, in seconds")
 	flag.StringVar(&fileStoragePath, "p", "./save.json", "path where file will be stored")
+
+	// ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+	// 	`localhost`, `postgres`, `yjdfz21f`, `metal`)
+
+	flag.StringVar(&connectionURL, "d", "", "PostgreSQL connection url")
 	flag.BoolVar(&restore, "r", true, "whether to restore data from save file or not")
 	if cfg.Address != "" {
 		startAddress.addr = cfg.Address
+	}
+	if cfg.ConnectionURL != "" {
+		connectionURL = cfg.ConnectionURL
 	}
 	if cfg.StoreInterval != nil {
 		storeInterval = *cfg.StoreInterval
@@ -60,5 +69,5 @@ func parseFlags() {
 		restore = *cfg.Restore
 	}
 	flag.Parse()
-	
+
 }

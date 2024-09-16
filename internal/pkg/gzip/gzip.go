@@ -24,9 +24,7 @@ func (zw *gzipWriter) WriteString(s string) (int, error) {
 	return zw.gz.Write([]byte(s))
 }
 func (zw *gzipWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		zw.Header().Set("Content-Encoding", "gzip")
-	}
+	zw.Header().Set("Content-Encoding", "gzip")
 	zw.ResponseWriter.WriteHeader(statusCode)
 }
 
@@ -81,7 +79,6 @@ func GzipHandler() gin.HandlerFunc {
 			c.Writer = w
 			defer func() {
 				gz.Close()
-				c.Header("Content-Length", fmt.Sprint(c.Writer.Size()))
 			}()
 
 		}
