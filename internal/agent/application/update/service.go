@@ -28,7 +28,7 @@ func New(a string) interfaces.UpdateService {
 func (s *UpdateService) UpdateMetrics(metric models.Metrics) *resty.Response {
 	p := map[string]string{
 		"type": metric.MType,
-		"name": metric.ID,
+		"name": metric.Name,
 	}
 
 	if metric.MType == "counter" {
@@ -39,7 +39,7 @@ func (s *UpdateService) UpdateMetrics(metric models.Metrics) *resty.Response {
 		p["value"] = fmt.Sprintf("%g", m)
 	}
 
-	fmt.Printf("Updating metrics on server %s:%f \n", metric.ID, *metric.Value)
+	fmt.Printf("Updating metrics on server %s:%f \n", metric.Name, *metric.Value)
 	res, _ := s.client.R().SetPathParams(p).Post("/update/{type}/{name}/{value}")
 	return res
 }
@@ -57,7 +57,7 @@ func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) *resty.Response
 		err := compressJSON(w, metric)
 		w.CloseWithError(err)
 	}()
-	fmt.Printf("Updating metrics on server %s: \n", metric.ID)
+	fmt.Printf("Updating metrics on server %s: \n", metric.Name)
 	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
 	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("update")
 	// fmt.Println(string(res.Body()))

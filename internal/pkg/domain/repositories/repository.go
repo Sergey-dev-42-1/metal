@@ -12,6 +12,9 @@ import (
 	"metal/internal/pkg/domain/repositories/interfaces"
 
 	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MemStorage struct {
@@ -52,7 +55,7 @@ func (m *MemStorage) Restore() error {
 	errRead := json.Unmarshal(content, &metrics)
 	if errRead != nil {
 		fmt.Println("Had an issue when trying to restore saved values", errRead)
-		
+
 		return errRead
 	}
 	m.Metrics = metrics
@@ -81,7 +84,7 @@ func (m *MemStorage) Find(name string) (models.Metrics, error) {
 	m.mx.Lock()
 	defer m.mx.Unlock()
 	if val, ok := m.Metrics[name]; ok {
-		
+
 		return val, nil
 	}
 	return models.Metrics{}, errors.New("no such metric")
@@ -90,7 +93,7 @@ func (m *MemStorage) Find(name string) (models.Metrics, error) {
 func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 
 	fmt.Println("Create or update metric")
-	var name = metric.ID
+	var name = metric.Name
 	var tp = metric.MType
 
 	if _, ok := m.Metrics[name]; ok {
@@ -109,7 +112,7 @@ func (m *MemStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
 			Delta: &newDelta,
 			Value: metric.Value,
 			MType: tp,
-			ID:    name,
+			Name:  name,
 		}
 		m.mx.Unlock()
 		return m.Metrics[name]
@@ -137,33 +140,52 @@ func (m *MemStorage) Remove(name string) error {
 
 type SQLStorage struct {
 	l  *zap.SugaredLogger
-	db *sql.DB
+	db *gorm.DB
 }
 
 func NewSQLStorage(URL string, l *zap.SugaredLogger) interfaces.MetricsStorage {
-	db, err := sql.Open("pgx", URL)
+
+	pgdb, err := sql.Open("pgx", URL)
+
 	if err != nil {
 		l.Errorf("Couldn't establish connection with DB on following URL: %s %s", URL, err)
 		return NewMemStorage("./save.json", l)
 	}
 
+	gormdb, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: pgdb,
+	}), &gorm.Config{})
+	if err != nil {
+		l.Errorf("Couldn't connect gorm: %s %s", URL, err)
+		return NewMemStorage("./save.json", l)
+	}
+	l.Infof("Successfully connected: %s", URL)
+
+	merr := gormdb.AutoMigrate(&models.Metrics{})
+	if merr != nil {
+		l.Errorf("Couldn't do migrations:  %s", URL, err)
+		return NewMemStorage("./save.json", l)
+	}
+	l.Infof("Run migrations")
 	return &SQLStorage{
-		db: db,
+		db: gormdb,
 		l:  l,
 	}
 }
 
 func (s *SQLStorage) Ping() error {
 	s.l.Infoln("test ping sql")
-	err := s.db.Ping()
+	sqldb, err := s.db.DB()
 	if err != nil {
-		s.l.Infof("test ping sql %s", err)
+		s.l.Infof("Couldn't get underlying db from gorm %s", err)
 	}
-	return s.db.Ping()
+	return sqldb.Ping()
 }
 
 func (s *SQLStorage) GetAll() map[string]models.Metrics {
-	return make(map[string]models.Metrics)
+	metrics := make(map[string]models.Metrics)
+	s.db.Find(&metrics)
+	return metrics
 }
 
 func (s *SQLStorage) Restore() error {
@@ -174,15 +196,39 @@ func (s *SQLStorage) Save() error {
 }
 
 func (s *SQLStorage) Find(name string) (models.Metrics, error) {
-	var ptr models.Metrics
-	return ptr, errors.New("not implemented")
+	var metric models.Metrics
+	res := s.db.Limit(1).First(&metric, "name = ?", name)
+	if res.Error != nil {
+		s.l.Errorf("Issue when retrieving metric %v", res.Error)
+		return metric, res.Error
+	}
+	return metric, nil
 }
 
 func (s *SQLStorage) CreateOrUpdate(metric models.Metrics) models.Metrics {
-	var ptr models.Metrics
-	return ptr
+	if metric.MType == "counter" {
+		existing, err := s.Find(metric.Name)
+		if err == nil {
+			s.l.Infoln("Creating new")
+			newValue := *metric.Delta + *existing.Delta
+			metric.Delta = &newValue
+			s.db.Model(&models.Metrics{}).Where("name = ?", metric.Name).Update("delta", newValue)
+			return metric
+		}
+	}
+	s.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		UpdateAll: true,
+	}).Create(&metric)
+	if s.db.Error != nil {
+		s.l.Errorf("Something went wrong when creating / upadating value in DB %v", s.db.Error)
+	}
+	return metric
 }
-
 func (s *SQLStorage) Remove(name string) error {
-	return errors.New("not implemented")
+	s.db.Delete(models.Metrics{Name: name})
+	if s.db.Error != nil {
+		s.l.Errorf("Something went wrong when removing value in DB %v, name: %s", s.db.Error, name)
+	}
+	return s.db.Error
 }

@@ -15,6 +15,7 @@ import (
 type MetricsController struct {
 	metricService *service.MetricsService
 	router        *gin.Engine
+	l             *zap.SugaredLogger
 }
 
 func New(r *gin.Engine, l *zap.SugaredLogger, repo interfaces.MetricsStorage) *MetricsController {
@@ -22,6 +23,7 @@ func New(r *gin.Engine, l *zap.SugaredLogger, repo interfaces.MetricsStorage) *M
 	return &MetricsController{
 		router:        r,
 		metricService: m,
+		l:             l,
 	}
 }
 
@@ -52,11 +54,12 @@ func (mc *MetricsController) HandleMetricRecordingJSON(c *gin.Context) {
 	}
 	metric := models.Metrics{}
 	if err := json.NewDecoder(c.Request.Body).Decode(&metric); err != nil {
+		mc.l.Errorf("%v %v", err, metric)
 		c.String(500, "%s", "Something went wrong when trying to parse request content")
 		return
 	}
-	fmt.Println("test record", metric.ID, metric.Delta, metric.Value, metric.MType)
-	if metric.ID == "" {
+	fmt.Println("test record", metric.Name, metric.Delta, metric.Value, metric.MType)
+	if metric.Name == "" {
 		c.String(404, "%s", "Name of the metric is not specified")
 		return
 	}
@@ -95,7 +98,7 @@ func (mc *MetricsController) HandleMetricRecording(c *gin.Context) {
 		return
 	}
 
-	metric := models.Metrics{ID: name, MType: tp}
+	metric := models.Metrics{Name: name, MType: tp}
 	mv, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		c.String(400, "%s", "Value is not a number")
@@ -107,7 +110,7 @@ func (mc *MetricsController) HandleMetricRecording(c *gin.Context) {
 	}
 
 	result := mc.metricService.CreateOrUpdateMetric(metric)
-	c.String(200, "Successfully written '%s' metric", result.ID)
+	c.String(200, "Successfully written '%s' metric", result.Name)
 }
 
 func (mc *MetricsController) HandleGetMetricValue(c *gin.Context) {
@@ -141,11 +144,11 @@ func (mc *MetricsController) HandleGetMetricValueJSON(c *gin.Context) {
 		return
 	}
 
-	if metric.ID == "" {
+	if metric.Name == "" {
 		c.String(404, "%s", "Name of the metric is not specified")
 		return
 	}
-	m, err := mc.metricService.FindMetric(metric.ID)
+	m, err := mc.metricService.FindMetric(metric.Name)
 	// fmt.Println("test read", metric.ID, metric.Delta, metric.Value, metric.MType)
 	if err != nil {
 		c.String(404, "%s", "Didn't find such metric")
