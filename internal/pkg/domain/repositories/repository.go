@@ -40,7 +40,6 @@ func (m *MemStorage) Restore() error {
 	content, err := os.ReadFile(m.FileStoragePath)
 	if err != nil {
 		fmt.Println("Had an issue when trying to open file", err)
-		m.mx.Unlock()
 		return err
 	}
 	// scanner := bufio.NewScanner(file)
