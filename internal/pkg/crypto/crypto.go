@@ -68,7 +68,7 @@ func SignSHA256(msg []byte, key string) string {
 	}
 
 	hash := hm.Sum(nil)
-	fmt.Println("Hash length:", len(hash), hash)               // Should be 32 bytes
+	fmt.Println("Hash length:", len(hash), hash)         // Should be 32 bytes
 	fmt.Println("Hash (hex):", hex.EncodeToString(hash)) // Should be 64 hex characters
 	return hex.EncodeToString(hash)
 }
@@ -77,44 +77,39 @@ func CryptoHandler(key string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// fmt.Println("in middleware for crypto")
 		allowedMethods := []string{"GET", "DELETE", "OPTIONS"}
-		if slices.Contains(allowedMethods, c.Request.Method) {
+		hashHeader := c.Request.Header.Get("HashSHA256")
+		if slices.Contains(allowedMethods, c.Request.Method) || key != "" || hashHeader == "" {
 			c.Next()
 			return
-		} else if key != "" {
-			hashHeader := c.Request.Header.Get("HashSHA256")
+		}
+		if hashHeader != "" {
+			//Read body
+			bodyBytes, err := io.ReadAll(c.Request.Body)
+			// fmt.Println("body content", string(bodyBytes))
+			// if len(bodyBytes) == 0 {
+			// 	c.Next()
+			// 	return
+			// }
+			if err != nil {
+				fmt.Println("had an issue reading request body")
+			}
+			//Reset body
+			signServer := SignSHA256(bodyBytes, key)
+			fmt.Println("signServer", signServer, hashHeader)
+			if signServer == hashHeader {
+				fmt.Println("equal", signServer, hashHeader)
+			}
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-			if hashHeader != "" {
-				//Read body
-				bodyBytes, err := io.ReadAll(c.Request.Body)
-				// fmt.Println("body content", string(bodyBytes))
-				if len(bodyBytes) == 0 {
-					c.Next()
-					return
-				}
-				if err != nil {
-					fmt.Println("had an issue reading request body")
-				}
-				//Reset body
-				signServer := SignSHA256(bodyBytes, key)
-				fmt.Println("signServer", signServer, hashHeader)
-				if signServer == hashHeader {
-					fmt.Println("equal", signServer, hashHeader)
-				}
-				c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-
-				//Compare signatures
-				if signServer != hashHeader {
-					c.AbortWithError(400, errors.New("signatures don't match"))
-					return
-				}
-				//Add header to all responses before sending request
-				cw := &cryptoWriter{c.Writer, key, bodyBytes}
-				c.Writer = cw
-
-			} else {
-				c.Next()
+			//Compare signatures
+			if signServer != hashHeader {
+				c.AbortWithError(400, errors.New("signatures don't match"))
 				return
 			}
+			//Add header to all responses before sending request
+			cw := &cryptoWriter{c.Writer, key, bodyBytes}
+			c.Writer = cw
+
 		}
 
 		c.Next()
