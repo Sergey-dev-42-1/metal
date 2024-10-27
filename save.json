@@ -1,12 +1,52 @@
 {
+	"GetSet107": {
+		"id": "GetSet107",
+		"type": "gauge",
+		"value": 148442.40832143746
+	},
+	"GetSet126": {
+		"id": "GetSet126",
+		"type": "counter",
+		"delta": 1372965221
+	},
 	"GetSet144": {
 		"id": "GetSet144",
 		"type": "counter",
 		"delta": 1105526682
 	},
+	"GetSet153": {
+		"id": "GetSet153",
+		"type": "counter",
+		"delta": 1498676804
+	},
 	"GetSet184": {
 		"id": "GetSet184",
 		"type": "gauge",
 		"value": 926355.9798050034
+	},
+	"GetSet221": {
+		"id": "GetSet221",
+		"type": "gauge",
+		"value": 710688.3097559095
+	},
+	"GetSet51": {
+		"id": "GetSet51",
+		"type": "gauge",
+		"value": 214710.06390967534
+	},
+	"GetSet64": {
+		"id": "GetSet64",
+		"type": "counter",
+		"delta": 1862771429
+	},
+	"GetSet84": {
+		"id": "GetSet84",
+		"type": "counter",
+		"delta": 2164318885
+	},
+	"GetSet85": {
+		"id": "GetSet85",
+		"type": "gauge",
+		"value": 358190.6581140258
 	}
 }

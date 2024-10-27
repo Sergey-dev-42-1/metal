@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"metal/internal/pkg/crypto"
 	"metal/internal/pkg/domain/repositories"
 	"metal/internal/pkg/domain/repositories/interfaces"
 	"metal/internal/pkg/gzip"
@@ -51,8 +52,9 @@ func main() {
 	}
 	// Router and middlewares
 	r := router.Router()
-	r.Use(logger.Logger())
+	// r.Use(logger.Logger())
 	r.Use(gzip.GzipHandler())
+	r.Use(crypto.CryptoHandler(key))
 	mc := controller.New(r, zlog, repo)
 	r = mc.AddRoutes()
 	//Не будет работать если запускать сервер не из корневой папки

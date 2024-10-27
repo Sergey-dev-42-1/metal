@@ -15,14 +15,16 @@ import (
 
 type MetricsService struct {
 	addr           string
+	key            string
 	reportInterval int
 	pollInterval   int
 	batching       bool
 }
 
-func New(a string, r int, p int, b bool) interfaces.MetricsService {
+func New(a string, k string, r int, p int, b bool) interfaces.MetricsService {
 	return &MetricsService{
 		addr:           a,
+		key:            k,
 		reportInterval: r,
 		pollInterval:   p,
 		batching:       b,
@@ -56,7 +58,7 @@ func (s *MetricsService) CollectMemStats() {
 func (s *MetricsService) SendMemStats() {
 	for {
 		time.Sleep(time.Duration(s.reportInterval) * time.Second)
-		service := updateService.New(s.addr)
+		service := updateService.New(s.addr, s.key)
 		if s.batching {
 			// don't think there is need to run goroutine
 			service.UpdateMetricsJSONBatch(stats)

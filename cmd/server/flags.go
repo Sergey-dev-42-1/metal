@@ -11,6 +11,7 @@ import (
 var cfg = config.GetConfigServer()
 var (
 	startAddress    Address
+	key             string
 	storeInterval   int
 	fileStoragePath string
 	connectionURL   string
@@ -45,16 +46,20 @@ func parseFlags() {
 		addr: "localhost:8080",
 	}
 	flag.Var(&startAddress, "a", "host and port which server will run on")
+	flag.StringVar(&key, "k", "", "key for symmetrical encryption, add to turn it on, otherwise it'll run unprotected")
 	flag.IntVar(&storeInterval, "interval", 300, "interval of saving data to disk, in seconds")
 	flag.StringVar(&fileStoragePath, "p", "./save.json", "path where file will be stored")
 
 	// ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 	// 	`localhost`, `postgres`, `yjdfz21f`, `metal`)
 
-	flag.StringVar(&connectionURL, "d", "", "PostgreSQL connection url")
+	flag.StringVar(&connectionURL, "d", "postgres://postgres:yjdfz21f@localhost:5432/metal?sslmode=disable", "PostgreSQL connection url")
 	flag.BoolVar(&restore, "r", true, "whether to restore data from save file or not")
 	if cfg.Address != "" {
 		startAddress.addr = cfg.Address
+	}
+	if cfg.Key != "" {
+		key = cfg.Key
 	}
 	if cfg.ConnectionURL != "" {
 		connectionURL = cfg.ConnectionURL

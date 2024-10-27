@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/caarlos0/env/v6"
@@ -9,13 +8,15 @@ import (
 
 type ConfigAgent struct {
 	Address        string `env:"ADDRESS"`
+	Key            string `env:"KEY"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
-	Batching       *bool   `env:"BATCHING"`
+	Batching       *bool  `env:"BATCHING"`
 }
 
 type ConfigServer struct {
 	Address         string `env:"ADDRESS"`
+	Key             string `env:"KEY"`
 	StoreInterval   *int   `env:"STORE_INTERVAL"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         *bool  `env:"RESTORE"`
@@ -28,7 +29,7 @@ func GetConfigAgent() *ConfigAgent {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.PollInterval, cfg.ReportInterval, cfg.Batching)
+	log.Println(cfg.Address, cfg.Key, cfg.PollInterval, cfg.ReportInterval, cfg.Batching)
 	return &cfg
 }
 
@@ -38,6 +39,6 @@ func GetConfigServer() *ConfigServer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(cfg.Address, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath, cfg.ConnectionURL)
+	log.Println(cfg.Address, cfg.Key, cfg.Restore, cfg.StoreInterval, cfg.FileStoragePath, cfg.ConnectionURL)
 	return &cfg
 }

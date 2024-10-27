@@ -5,7 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"metal/internal/agent/application/update/interfaces"
+
+	// "metal/internal/pkg/crypto"
+
+	"metal/internal/pkg/crypto"
 	"metal/internal/pkg/domain/models"
 
 	"github.com/go-resty/resty/v2"
@@ -13,14 +18,16 @@ import (
 
 type UpdateService struct {
 	addr   string
+	key    string
 	client *resty.Client
 }
 
-func New(a string) interfaces.UpdateService {
+func New(a string, k string) interfaces.UpdateService {
 	client := resty.New()
 	client.BaseURL = "http://" + a
 	return &UpdateService{
 		addr:   a,
+		key:    k,
 		client: client,
 	}
 }
@@ -44,34 +51,55 @@ func (s *UpdateService) UpdateMetrics(metric models.Metrics) *resty.Response {
 	return res
 }
 
-func compressJSON(w io.Writer, i interface{}) error {
-	gz := gzip.NewWriter(w)
-	if err := json.NewEncoder(gz).Encode(i); err != nil {
-		return err
+func compressJSON(w io.Writer, jsonData []byte) error {
+	gzipWriter := gzip.NewWriter(w)
+	_, err := gzipWriter.Write(jsonData)
+	if err != nil {
+		log.Fatal("Error writing compressed data:", err)
 	}
-	return gz.Close()
+	gzipWriter.Close()
+	return err
 }
+
+// TODO: could just use batch one but pass array with one element
 func (s *UpdateService) UpdateMetricsJSON(metric models.Metrics) *resty.Response {
 	r, w := io.Pipe()
+	jsonData, err := json.Marshal(metric)
+	if err != nil {
+		log.Fatal("Error encoding JSON:", err)
+	}
 	go func() {
-		err := compressJSON(w, metric)
-		w.CloseWithError(err)
+		compressErr := compressJSON(w, jsonData)
+		w.CloseWithError(compressErr)
 	}()
 	fmt.Printf("Updating metrics on server %s: \n", metric.Name)
 	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
-	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("update")
-	// fmt.Println(string(res.Body()))
+	if s.key != "" {
+		hash := crypto.SignSHA256(jsonData, s.key)
+		headers["HashSHA256"] = hash
+	}
+
+	res, err := s.client.R().SetHeaders(headers).SetBody(r).Post("update")
+	fmt.Println(res, err)
 	return res
 }
 
 func (s *UpdateService) UpdateMetricsJSONBatch(metric []models.Metrics) *resty.Response {
 	r, w := io.Pipe()
+	jsonData, err := json.Marshal(metric)
+	if err != nil {
+		log.Fatal("Error encoding JSON:", err)
+	}
 	go func() {
-		err := compressJSON(w, metric)
-		w.CloseWithError(err)
+		compressErr := compressJSON(w, jsonData)
+		w.CloseWithError(compressErr)
 	}()
-	fmt.Printf("Updating metrics on server in batch \n")
+	fmt.Printf("Updating metrics on server \n")
 	headers := map[string]string{"Content-Type": "application/json", "Content-Encoding": "gzip"}
+	if s.key != "" {
+		hash := string(crypto.SignSHA256(jsonData, s.key))
+		headers["HashSHA256"] = hash
+	}
 	res, _ := s.client.R().SetHeaders(headers).SetBody(r).Post("updates")
 	// fmt.Println(string(res.Body()))
 	return res

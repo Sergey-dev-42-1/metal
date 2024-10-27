@@ -61,6 +61,7 @@ func (m *MemStorage) Restore() error {
 	fmt.Println("Successfully restored values from ", m.FileStoragePath)
 	return nil
 }
+
 func (m *MemStorage) Save() error {
 	m.mx.Lock()
 	data, err := json.MarshalIndent(m.Metrics, "", "	")
@@ -207,7 +208,7 @@ func (s *SQLStorage) Find(name string) (models.Metrics, error) {
 	var metric models.Metrics
 	res := s.db.Limit(1).First(&metric, "name = ?", name)
 	if res.Error != nil {
-		s.l.Errorf("Issue when retrieving metric %v", res.Error)
+		// s.l.Errorf("Issue when retrieving metric %v", res.Error)
 		return metric, res.Error
 	}
 	return metric, nil
