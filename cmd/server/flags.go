@@ -53,7 +53,7 @@ func parseFlags() {
 	// ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 	// 	`localhost`, `postgres`, `yjdfz21f`, `metal`)
 
-	flag.StringVar(&connectionURL, "d", "postgres://postgres:yjdfz21f@localhost:5432/metal?sslmode=disable", "PostgreSQL connection url")
+	flag.StringVar(&connectionURL, "d", "", "PostgreSQL connection url")
 	flag.BoolVar(&restore, "r", true, "whether to restore data from save file or not")
 	if cfg.Address != "" {
 		startAddress.addr = cfg.Address
