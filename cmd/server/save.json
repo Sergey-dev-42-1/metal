@@ -1,0 +1,152 @@
+{
+	"Alloc": {
+		"id": "Alloc",
+		"type": "gauge",
+		"value": 3373792
+	},
+	"BuckHashSys": {
+		"id": "BuckHashSys",
+		"type": "gauge",
+		"value": 10198
+	},
+	"Frees": {
+		"id": "Frees",
+		"type": "gauge",
+		"value": 7813
+	},
+	"GCCPUFraction": {
+		"id": "GCCPUFraction",
+		"type": "gauge",
+		"value": 0.0001412232973663046
+	},
+	"GCSys": {
+		"id": "GCSys",
+		"type": "gauge",
+		"value": 2470560
+	},
+	"HeapAlloc": {
+		"id": "HeapAlloc",
+		"type": "gauge",
+		"value": 3373792
+	},
+	"HeapIdle": {
+		"id": "HeapIdle",
+		"type": "gauge",
+		"value": 5439488
+	},
+	"HeapInuse": {
+		"id": "HeapInuse",
+		"type": "gauge",
+		"value": 6193152
+	},
+	"HeapObjects": {
+		"id": "HeapObjects",
+		"type": "gauge",
+		"value": 6028
+	},
+	"HeapReleased": {
+		"id": "HeapReleased",
+		"type": "gauge",
+		"value": 4431872
+	},
+	"HeapSys": {
+		"id": "HeapSys",
+		"type": "gauge",
+		"value": 11632640
+	},
+	"LastGC": {
+		"id": "LastGC",
+		"type": "gauge",
+		"value": 1730045855221078500
+	},
+	"Lookups": {
+		"id": "Lookups",
+		"type": "gauge",
+		"value": 0
+	},
+	"MCacheInuse": {
+		"id": "MCacheInuse",
+		"type": "gauge",
+		"value": 23360
+	},
+	"MCacheSys": {
+		"id": "MCacheSys",
+		"type": "gauge",
+		"value": 32704
+	},
+	"MSpanInuse": {
+		"id": "MSpanInuse",
+		"type": "gauge",
+		"value": 219360
+	},
+	"MSpanSys": {
+		"id": "MSpanSys",
+		"type": "gauge",
+		"value": 228480
+	},
+	"Mallocs": {
+		"id": "Mallocs",
+		"type": "gauge",
+		"value": 13841
+	},
+	"NextGC": {
+		"id": "NextGC",
+		"type": "gauge",
+		"value": 4949432
+	},
+	"NumForcedGC": {
+		"id": "NumForcedGC",
+		"type": "gauge",
+		"value": 0
+	},
+	"NumGC": {
+		"id": "NumGC",
+		"type": "gauge",
+		"value": 13
+	},
+	"OtherSys": {
+		"id": "OtherSys",
+		"type": "gauge",
+		"value": 3963210
+	},
+	"PauseTotalNs": {
+		"id": "PauseTotalNs",
+		"type": "gauge",
+		"value": 511200
+	},
+	"PollCount": {
+		"id": "PollCount",
+		"type": "counter",
+		"delta": 493370
+	},
+	"RandomValue": {
+		"id": "RandomValue",
+		"type": "gauge",
+		"value": 235527.13269156532
+	},
+	"StackInuse": {
+		"id": "StackInuse",
+		"type": "gauge",
+		"value": 950272
+	},
+	"StackSys": {
+		"id": "StackSys",
+		"type": "gauge",
+		"value": 950272
+	},
+	"Sys": {
+		"id": "Sys",
+		"type": "gauge",
+		"value": 19288064
+	},
+	"TotalAlloc": {
+		"id": "TotalAlloc",
+		"type": "gauge",
+		"value": 29600592
+	},
+	"test": {
+		"id": "test",
+		"type": "gauge",
+		"value": 1223
+	}
+}

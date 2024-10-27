@@ -2,10 +2,8 @@ package gzip
 
 import (
 	"compress/gzip"
-
 	"fmt"
 	"io"
-
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -24,9 +22,7 @@ func (zw *gzipWriter) WriteString(s string) (int, error) {
 	return zw.gz.Write([]byte(s))
 }
 func (zw *gzipWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		zw.Header().Set("Content-Encoding", "gzip")
-	}
+	zw.Header().Set("Content-Encoding", "gzip")
 	zw.ResponseWriter.WriteHeader(statusCode)
 }
 
@@ -60,8 +56,9 @@ func (zr *gzipReader) Close() error {
 
 func GzipHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// fmt.Println("in gzip handler")
 		receivedGzip := strings.Contains(c.Request.Header.Get("Content-Encoding"), "gzip")
-		if receivedGzip {
+		if receivedGzip && c.Request.Method != "GET" {
 			gz, err := newCompressReader(c.Request.Body)
 			if err != nil {
 				fmt.Println(err)
@@ -71,6 +68,7 @@ func GzipHandler() gin.HandlerFunc {
 			// c.Request.Header.Del("Content-Encoding")
 			// c.Request.Header.Del("Content-Length")
 			c.Request.Body = gz
+
 			defer gz.Close()
 		}
 
@@ -81,7 +79,6 @@ func GzipHandler() gin.HandlerFunc {
 			c.Writer = w
 			defer func() {
 				gz.Close()
-				c.Header("Content-Length", fmt.Sprint(c.Writer.Size()))
 			}()
 
 		}

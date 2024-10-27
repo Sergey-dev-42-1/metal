@@ -3,7 +3,6 @@ package service
 import (
 	"runtime"
 	"testing"
-
 	"github.com/stretchr/testify/assert"
 )
 
